@@ -1,0 +1,1457 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap');
+
+  :root {
+    --term-bg: #0d1117;
+    --term-surface: #161b22;
+    --term-card: #1c2128;
+    --term-border: #30363d;
+    --term-green: #3fb950;
+    --term-cyan: #79c0ff;
+    --term-yellow: #e3b341;
+    --term-purple: #d2a8ff;
+    --term-red: #f85149;
+    --term-orange: #ffa657;
+    --term-text: #c9d1d9;
+    --term-muted: #8b949e;
+    --term-accent: #58a6ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  #root {
+    font-family: 'Sora', sans-serif;
+    background: var(--term-bg);
+    color: var(--term-text);
+    min-height: 600px;
+    overflow: hidden;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+    border-bottom: 1px solid var(--term-border);
+    padding: 16px 20px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .terminal-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--term-green);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0d1117;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .header-sub {
+    font-size: 11px;
+    color: var(--term-muted);
+    margin-top: 1px;
+  }
+
+  .count-badge {
+    margin-left: auto;
+    background: rgba(63,185,80,0.15);
+    border: 1px solid rgba(63,185,80,0.3);
+    color: var(--term-green);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--term-surface);
+    border: 1px solid var(--term-border);
+    border-radius: 10px;
+    padding: 0 12px;
+    gap: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .search-bar:focus-within {
+    border-color: var(--term-accent);
+  }
+
+  .search-icon {
+    color: var(--term-muted);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--term-text);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 9px 0;
+  }
+
+  .search-input::placeholder {
+    color: var(--term-muted);
+  }
+
+  .categories {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 10px 20px 0;
+    scrollbar-width: none;
+    background: var(--term-bg);
+  }
+
+  .categories::-webkit-scrollbar { display: none; }
+
+  .cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--term-border);
+    background: none;
+    color: var(--term-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: 'Sora', sans-serif;
+    letter-spacing: 0.3px;
+  }
+
+  .cat-btn:hover { background: var(--term-surface); color: var(--term-text); }
+
+  .cat-btn.active {
+    background: var(--term-surface);
+    border-color: var(--cat-color, var(--term-accent));
+    color: var(--cat-color, var(--term-accent));
+  }
+
+  .cat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .content {
+    padding: 12px 16px 24px;
+    overflow-y: auto;
+    height: calc(100% - 140px);
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--term-muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin: 16px 0 8px 2px;
+  }
+
+  .commands-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cmd-card {
+    background: var(--term-card);
+    border: 1px solid var(--term-border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cmd-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--cat-color, var(--term-accent));
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .cmd-card:hover {
+    border-color: var(--cat-color, var(--term-accent));
+    background: var(--term-surface);
+  }
+
+  .cmd-card:hover::before { opacity: 1; }
+
+  .cmd-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .cmd-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cat-color, var(--term-cyan));
+  }
+
+  .cmd-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    color: var(--term-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .cmd-desc {
+    font-size: 12px;
+    color: var(--term-muted);
+    line-height: 1.5;
+  }
+
+  .cmd-syntax {
+    margin-top: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--term-yellow);
+    background: rgba(0,0,0,0.3);
+    padding: 4px 8px;
+    border-radius: 5px;
+    display: none;
+  }
+
+  .cmd-card:hover .cmd-syntax { display: block; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--term-card);
+    border: 1px solid var(--term-border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .modal-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--term-border);
+    position: sticky;
+    top: 0;
+    background: var(--term-card);
+    z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .modal-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .modal-cmd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .modal-cat {
+    font-size: 11px;
+    color: var(--term-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--term-muted);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .modal-close:hover { color: var(--term-text); }
+
+  .modal-body { padding: 18px 20px 20px; }
+
+  .modal-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--term-muted);
+    margin-bottom: 8px;
+    margin-top: 16px;
+  }
+
+  .modal-section-title:first-child { margin-top: 0; }
+
+  .modal-desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--term-text);
+  }
+
+  .modal-syntax-block {
+    background: #0d1117;
+    border: 1px solid var(--term-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--term-yellow);
+    margin-bottom: 6px;
+  }
+
+  .option-row {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    font-size: 12px;
+    align-items: flex-start;
+  }
+
+  .option-row:last-child { border-bottom: none; }
+
+  .option-flag {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--term-orange);
+    min-width: 70px;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+
+  .option-desc { color: var(--term-text); line-height: 1.5; }
+
+  .example-block {
+    background: #0d1117;
+    border: 1px solid var(--term-border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .example-topbar {
+    background: rgba(255,255,255,0.04);
+    padding: 5px 12px;
+    font-size: 10px;
+    color: var(--term-muted);
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--term-border);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .example-code {
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .ex-prompt { color: var(--term-green); }
+  .ex-cmd    { color: var(--term-cyan); }
+  .ex-flag   { color: var(--term-orange); }
+  .ex-arg    { color: var(--term-purple); }
+  .ex-out    { color: var(--term-muted); }
+
+  .no-results {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--term-muted);
+  }
+
+  .no-results-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px;
+    color: var(--term-border);
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .copy-btn {
+    background: rgba(63,185,80,0.1);
+    border: 1px solid rgba(63,185,80,0.3);
+    color: var(--term-green);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 8px;
+    transition: background 0.15s;
+  }
+
+  .copy-btn:hover { background: rgba(63,185,80,0.2); }
+
+  .related-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: var(--term-surface);
+    border: 1px solid var(--term-border);
+    border-radius: 6px;
+    color: var(--term-muted);
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .tag:hover { border-color: var(--term-cyan); color: var(--term-cyan); }
+</style>
+
+<div id="root">
+  <div class="header">
+    <div class="header-top">
+      <div class="terminal-icon">$_</div>
+      <div>
+        <div class="header-title">Linux Commands</div>
+        <div class="header-sub">Complete reference · 200+ commands</div>
+      </div>
+      <div class="count-badge" id="result-count">200+</div>
+    </div>
+    <div class="search-bar">
+      <span class="search-icon">❯</span>
+      <input class="search-input" type="text" id="search" placeholder="Search commands, options, descriptions..." />
+    </div>
+  </div>
+
+  <div class="categories" id="categories"></div>
+  <div class="content" id="content"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<script>
+const CATS = [
+  { id:'all',    label:'All',         color:'#58a6ff', icon:'⬡' },
+  { id:'nav',    label:'Navigation',  color:'#3fb950', icon:'⬡' },
+  { id:'file',   label:'Files',       color:'#79c0ff', icon:'⬡' },
+  { id:'perm',   label:'Permissions', color:'#e3b341', icon:'⬡' },
+  { id:'proc',   label:'Process',     color:'#d2a8ff', icon:'⬡' },
+  { id:'net',    label:'Network',     color:'#ffa657', icon:'⬡' },
+  { id:'text',   label:'Text',        color:'#3fb950', icon:'⬡' },
+  { id:'search', label:'Search',      color:'#f85149', icon:'⬡' },
+  { id:'sys',    label:'System',      color:'#79c0ff', icon:'⬡' },
+  { id:'arch',   label:'Archive',     color:'#e3b341', icon:'⬡' },
+  { id:'disk',   label:'Disk',        color:'#d2a8ff', icon:'⬡' },
+  { id:'user',   label:'Users',       color:'#ffa657', icon:'⬡' },
+  { id:'pkg',    label:'Package',     color:'#3fb950', icon:'⬡' },
+  { id:'shell',  label:'Shell',       color:'#58a6ff', icon:'⬡' },
+  { id:'ssh',    label:'SSH/Remote',  color:'#f85149', icon:'⬡' },
+  { id:'misc',   label:'Misc',        color:'#8b949e', icon:'⬡' },
+];
+
+const COMMANDS = [
+  // Navigation
+  { name:'pwd',     cat:'nav',   desc:'Print working directory — shows current location in filesystem.',
+    syntax:'pwd [-LP]',
+    options:[{f:'-L',d:'Follow logical symlinks (default)'},{f:'-P',d:'Show physical path, resolving symlinks'}],
+    examples:[{title:'Basic usage',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">pwd</span>\n<span class="ex-out">/home/user/projects</span>`}],
+    tags:['cd','ls','path'] },
+  { name:'cd',      cat:'nav',   desc:'Change directory. Navigate the filesystem tree.',
+    syntax:'cd [directory]',
+    options:[{f:'~',d:'Home directory'},{f:'-',d:'Previous directory'},{f:'..',d:'Parent directory'}],
+    examples:[{title:'Examples',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">cd</span> <span class="ex-arg">~/Documents</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">cd</span> <span class="ex-arg">-</span>       <span class="ex-out"># back to previous</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">cd</span> <span class="ex-arg">..</span>      <span class="ex-out"># parent dir</span>`}],
+    tags:['pwd','ls'] },
+  { name:'ls',      cat:'nav',   desc:'List directory contents. One of the most frequently used commands.',
+    syntax:'ls [options] [path]',
+    options:[{f:'-l',d:'Long format with permissions, owner, size, date'},{f:'-a',d:'Show hidden files (starting with .)'},{f:'-h',d:'Human readable sizes'},{f:'-R',d:'Recursive listing'},{f:'-t',d:'Sort by modification time'},{f:'-S',d:'Sort by file size'}],
+    examples:[{title:'Common usage',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ls</span> <span class="ex-flag">-lah</span>\n<span class="ex-out">total 64K\ndrwxr-xr-x 12 user user 4.0K Jan 10 12:34 .\ndrwxr-xr-x  3 user user 4.0K Jan  9 10:00 ..\n-rw-r--r--  1 user user 2.1K Jan 10 11:20 notes.txt</span>`}],
+    tags:['dir','tree','find'] },
+  { name:'tree',    cat:'nav',   desc:'Display directory structure in a tree format.',
+    syntax:'tree [options] [directory]',
+    options:[{f:'-L n',d:'Limit depth to n levels'},{f:'-a',d:'Show hidden files'},{f:'-d',d:'Directories only'},{f:'-f',d:'Print full path prefix'}],
+    examples:[{title:'Depth limited',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">tree</span> <span class="ex-flag">-L 2</span> <span class="ex-arg">.</span>\n<span class="ex-out">.\n├── src\n│   ├── main.c\n│   └── utils.c\n└── README.md</span>`}],
+    tags:['ls','find'] },
+  { name:'pushd',   cat:'nav',   desc:'Push directory onto stack and change to it.',
+    syntax:'pushd [directory]',
+    options:[],
+    examples:[{title:'Stack navigation',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">pushd</span> <span class="ex-arg">/etc</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">popd</span>     <span class="ex-out"># return to previous</span>`}],
+    tags:['popd','cd'] },
+  { name:'popd',    cat:'nav',   desc:'Pop directory from stack and change to it.',
+    syntax:'popd', options:[], examples:[], tags:['pushd'] },
+
+  // Files
+  { name:'cp',      cat:'file',  desc:'Copy files and directories.',
+    syntax:'cp [options] source destination',
+    options:[{f:'-r',d:'Copy directories recursively'},{f:'-p',d:'Preserve timestamps and permissions'},{f:'-u',d:'Copy only when source is newer'},{f:'-v',d:'Verbose output'},{f:'-i',d:'Prompt before overwrite'},{f:'-a',d:'Archive mode (preserves everything)'}],
+    examples:[{title:'Copy with preserve',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">cp</span> <span class="ex-flag">-rp</span> <span class="ex-arg">src/ dest/</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">cp</span> <span class="ex-flag">-v</span> <span class="ex-arg">*.txt backup/</span>`}],
+    tags:['mv','rsync','scp'] },
+  { name:'mv',      cat:'file',  desc:'Move or rename files and directories.',
+    syntax:'mv [options] source destination',
+    options:[{f:'-i',d:'Prompt before overwriting'},{f:'-n',d:'Do not overwrite'},{f:'-v',d:'Verbose'}],
+    examples:[{title:'Rename and move',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">mv</span> <span class="ex-arg">old.txt new.txt</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">mv</span> <span class="ex-arg">file.txt /home/user/docs/</span>`}],
+    tags:['cp','rename'] },
+  { name:'rm',      cat:'file',  desc:'Remove files or directories. Use with caution — no recycle bin!',
+    syntax:'rm [options] files',
+    options:[{f:'-r',d:'Remove directories recursively'},{f:'-f',d:'Force removal, no prompts'},{f:'-i',d:'Prompt before each removal'},{f:'-v',d:'Verbose'}],
+    examples:[{title:'Remove files',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">rm</span> <span class="ex-arg">file.txt</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">rm</span> <span class="ex-flag">-rf</span> <span class="ex-arg">temp_dir/</span>  <span class="ex-out"># ⚠ use carefully</span>`}],
+    tags:['rmdir','shred','unlink'] },
+  { name:'mkdir',   cat:'file',  desc:'Create directories.',
+    syntax:'mkdir [options] directory',
+    options:[{f:'-p',d:'Create parent directories as needed'},{f:'-m',d:'Set permissions mode'}],
+    examples:[{title:'Create nested dirs',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">mkdir</span> <span class="ex-flag">-p</span> <span class="ex-arg">a/b/c/d</span>`}],
+    tags:['rmdir','mkdtemp'] },
+  { name:'rmdir',   cat:'file',  desc:'Remove empty directories.',
+    syntax:'rmdir [options] directory',
+    options:[{f:'-p',d:'Remove parent directories if empty too'}],
+    examples:[{title:'Remove empty dir',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">rmdir</span> <span class="ex-arg">empty_dir</span>`}],
+    tags:['rm','mkdir'] },
+  { name:'touch',   cat:'file',  desc:'Create empty files or update timestamps.',
+    syntax:'touch [options] files',
+    options:[{f:'-a',d:'Change access time only'},{f:'-m',d:'Change modification time only'},{f:'-t',d:'Use specified time instead of current'}],
+    examples:[{title:'Create file',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">touch</span> <span class="ex-arg">newfile.txt</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">touch</span> <span class="ex-arg">file1 file2 file3</span>`}],
+    tags:['create','timestamp'] },
+  { name:'ln',      cat:'file',  desc:'Create hard and symbolic links.',
+    syntax:'ln [options] target link_name',
+    options:[{f:'-s',d:'Create symbolic (soft) link'},{f:'-f',d:'Force — remove existing destination'},{f:'-v',d:'Verbose'}],
+    examples:[{title:'Symlink',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ln</span> <span class="ex-flag">-s</span> <span class="ex-arg">/etc/nginx nginx</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">ls</span> <span class="ex-flag">-la</span> <span class="ex-arg">nginx</span>\n<span class="ex-out">lrwxrwxrwx nginx -> /etc/nginx</span>`}],
+    tags:['readlink','symlink'] },
+  { name:'stat',    cat:'file',  desc:'Display file or filesystem status — detailed metadata.',
+    syntax:'stat [options] file',
+    options:[{f:'-f',d:'Display filesystem status'},{f:'-c',d:'Custom format string'}],
+    examples:[{title:'File stats',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">stat</span> <span class="ex-arg">file.txt</span>\n<span class="ex-out">  File: file.txt\n  Size: 1234\nAccess: 2024-01-10\nModify: 2024-01-09</span>`}],
+    tags:['ls','file','find'] },
+  { name:'file',    cat:'file',  desc:'Determine file type by examining content.',
+    syntax:'file [options] files',
+    options:[{f:'-b',d:'Brief output, no filename'},{f:'-i',d:'Output MIME type'},{f:'-z',d:'Look inside compressed files'}],
+    examples:[{title:'Check type',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">file</span> <span class="ex-arg">document.pdf</span>\n<span class="ex-out">document.pdf: PDF document, version 1.5</span>`}],
+    tags:['stat','type'] },
+  { name:'readlink', cat:'file', desc:'Print the value of a symbolic link or canonical file name.',
+    syntax:'readlink [options] file',
+    options:[{f:'-f',d:'Canonicalize — resolve all symlinks'},{f:'-e',d:'Canonicalize — all components must exist'}],
+    examples:[{title:'Resolve symlink',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">readlink</span> <span class="ex-flag">-f</span> <span class="ex-arg">mylink</span>\n<span class="ex-out">/real/path/to/file</span>`}],
+    tags:['ln','realpath'] },
+  { name:'basename', cat:'file', desc:'Strip directory and suffix from filename.',
+    syntax:'basename name [suffix]',
+    options:[],
+    examples:[{title:'Extract name',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">basename</span> <span class="ex-arg">/home/user/file.txt .txt</span>\n<span class="ex-out">file</span>`}],
+    tags:['dirname','realpath'] },
+  { name:'dirname', cat:'file',  desc:'Strip last component from filename — get directory part.',
+    syntax:'dirname path',
+    options:[],
+    examples:[{title:'Get directory',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">dirname</span> <span class="ex-arg">/home/user/file.txt</span>\n<span class="ex-out">/home/user</span>`}],
+    tags:['basename'] },
+  { name:'truncate', cat:'file', desc:'Shrink or extend the size of a file to a given size.',
+    syntax:'truncate [options] file',
+    options:[{f:'-s size',d:'Set file size to specified value'}],
+    examples:[{title:'Empty a file',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">truncate</span> <span class="ex-flag">-s 0</span> <span class="ex-arg">logfile.txt</span>`}],
+    tags:['dd','fallocate'] },
+
+  // Permissions
+  { name:'chmod',   cat:'perm',  desc:'Change file permissions (mode bits).',
+    syntax:'chmod [options] mode files',
+    options:[{f:'-R',d:'Recursive — change directory contents too'},{f:'-v',d:'Verbose output'}],
+    examples:[{title:'Set permissions',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">chmod</span> <span class="ex-arg">755 script.sh</span>  <span class="ex-out"># rwxr-xr-x</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">chmod</span> <span class="ex-arg">u+x,g-w file</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">chmod</span> <span class="ex-flag">-R</span> <span class="ex-arg">644 *.txt</span>`}],
+    tags:['chown','chgrp','umask'] },
+  { name:'chown',   cat:'perm',  desc:'Change file owner and group.',
+    syntax:'chown [options] user[:group] files',
+    options:[{f:'-R',d:'Recursive'},{f:'-v',d:'Verbose'}],
+    examples:[{title:'Change owner',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">chown</span> <span class="ex-arg">user:group file.txt</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">chown</span> <span class="ex-flag">-R</span> <span class="ex-arg">www-data /var/www</span>`}],
+    tags:['chmod','chgrp'] },
+  { name:'chgrp',   cat:'perm',  desc:'Change group ownership of files.',
+    syntax:'chgrp [options] group files',
+    options:[{f:'-R',d:'Recursive'}],
+    examples:[{title:'Change group',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">chgrp</span> <span class="ex-arg">developers project/</span>`}],
+    tags:['chown','chmod'] },
+  { name:'umask',   cat:'perm',  desc:'Set default file creation permissions mask.',
+    syntax:'umask [mask]',
+    options:[{f:'-S',d:'Symbolic output'}],
+    examples:[{title:'View/set umask',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">umask</span>\n<span class="ex-out">0022</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">umask</span> <span class="ex-arg">027</span>`}],
+    tags:['chmod','chown'] },
+  { name:'getfacl', cat:'perm',  desc:'Get file access control lists.',
+    syntax:'getfacl [options] files',
+    options:[{f:'-R',d:'Recursive'},{f:'-t',d:'Tabular output format'}],
+    examples:[{title:'Get ACL',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">getfacl</span> <span class="ex-arg">file.txt</span>`}],
+    tags:['setfacl','chmod'] },
+  { name:'setfacl', cat:'perm',  desc:'Set file access control lists.',
+    syntax:'setfacl [options] acl_spec files',
+    options:[{f:'-m',d:'Modify ACL'},{f:'-x',d:'Remove ACL entry'},{f:'-R',d:'Recursive'},{f:'-b',d:'Remove all ACL entries'}],
+    examples:[{title:'Set user ACL',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">setfacl</span> <span class="ex-flag">-m u:john:rw</span> <span class="ex-arg">file.txt</span>`}],
+    tags:['getfacl','chmod'] },
+
+  // Process
+  { name:'ps',      cat:'proc',  desc:'Report snapshot of current processes.',
+    syntax:'ps [options]',
+    options:[{f:'aux',d:'All processes with full details (BSD syntax)'},{f:'-ef',d:'Every process, full format'},{f:'-p pid',d:'Show specific PID'},{f:'--sort',d:'Sort output by field'}],
+    examples:[{title:'Process list',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ps</span> <span class="ex-flag">aux</span> <span class="ex-flag">| grep nginx</span>\n<span class="ex-out">www-data  1234  0.0  0.1  nginx: worker</span>`}],
+    tags:['top','pgrep','kill'] },
+  { name:'top',     cat:'proc',  desc:'Dynamic real-time view of running processes and system stats.',
+    syntax:'top [options]',
+    options:[{f:'-d n',d:'Delay between updates in seconds'},{f:'-p pid',d:'Monitor specific PIDs'},{f:'-u user',d:'Show only specified user processes'}],
+    examples:[{title:'Launch top',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">top</span>\n<span class="ex-out">top - 14:23 up 2 days\nTasks: 234 total, 1 running\n%Cpu(s): 2.3us, 0.5sy</span>`}],
+    tags:['htop','ps','free'] },
+  { name:'htop',    cat:'proc',  desc:'Interactive process viewer — improved top with color and mouse support.',
+    syntax:'htop', options:[],
+    examples:[{title:'Launch htop',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">htop</span>  <span class="ex-out"># F6 to sort, F9 to kill</span>`}],
+    tags:['top','glances'] },
+  { name:'kill',    cat:'proc',  desc:'Send signals to processes by PID.',
+    syntax:'kill [signal] PID',
+    options:[{f:'-9',d:'SIGKILL — force terminate'},{f:'-15',d:'SIGTERM — graceful stop (default)'},{f:'-l',d:'List all signal names'}],
+    examples:[{title:'Kill process',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">kill</span> <span class="ex-arg">1234</span>        <span class="ex-out"># graceful</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">kill</span> <span class="ex-flag">-9</span> <span class="ex-arg">1234</span>   <span class="ex-out"># force</span>`}],
+    tags:['killall','pkill','signal'] },
+  { name:'killall', cat:'proc',  desc:'Kill processes by name.',
+    syntax:'killall [options] name',
+    options:[{f:'-9',d:'Force kill'},{f:'-i',d:'Interactive — ask confirmation'},{f:'-r',d:'Use regex for name matching'}],
+    examples:[{title:'Kill by name',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">killall</span> <span class="ex-arg">firefox</span>`}],
+    tags:['kill','pkill'] },
+  { name:'pkill',   cat:'proc',  desc:'Send signal to processes based on name and other attributes.',
+    syntax:'pkill [options] pattern',
+    options:[{f:'-f',d:'Match full command line'},{f:'-u user',d:'Match user'},{f:'-9',d:'Force kill'}],
+    examples:[{title:'Kill pattern',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">pkill</span> <span class="ex-flag">-f</span> <span class="ex-arg">"python app.py"</span>`}],
+    tags:['pgrep','kill'] },
+  { name:'pgrep',   cat:'proc',  desc:'Look up processes based on name and attributes.',
+    syntax:'pgrep [options] pattern',
+    options:[{f:'-l',d:'Print process name too'},{f:'-a',d:'Print full command line'},{f:'-u user',d:'Match user'}],
+    examples:[{title:'Find PID',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">pgrep</span> <span class="ex-flag">-la</span> <span class="ex-arg">nginx</span>\n<span class="ex-out">1234 nginx: master process</span>`}],
+    tags:['pkill','ps'] },
+  { name:'nice',    cat:'proc',  desc:'Run a command with modified scheduling priority.',
+    syntax:'nice [-n adj] command',
+    options:[{f:'-n adj',d:'Adjustment: -20 (highest) to 19 (lowest). Default 10'}],
+    examples:[{title:'Lower priority',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">nice</span> <span class="ex-flag">-n 19</span> <span class="ex-arg">make -j4</span>`}],
+    tags:['renice','ionice'] },
+  { name:'renice',  cat:'proc',  desc:'Alter scheduling priority of running processes.',
+    syntax:'renice priority [-p pid] [-u user]',
+    options:[],
+    examples:[{title:'Change priority',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">renice</span> <span class="ex-arg">5 -p 1234</span>`}],
+    tags:['nice'] },
+  { name:'nohup',   cat:'proc',  desc:'Run a command immune to hangups — keeps running after logout.',
+    syntax:'nohup command [args] &',
+    options:[],
+    examples:[{title:'Run in background',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">nohup</span> <span class="ex-arg">./server.sh</span> &\n<span class="ex-out">nohup: ignoring input and appending to nohup.out</span>`}],
+    tags:['screen','tmux','bg','fg'] },
+  { name:'jobs',    cat:'proc',  desc:'List background and stopped jobs in current shell.',
+    syntax:'jobs [-l] [-p]',
+    options:[{f:'-l',d:'Show PIDs'},{f:'-p',d:'Show PIDs only'}],
+    examples:[{title:'List jobs',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">jobs</span>\n<span class="ex-out">[1]+  Running   sleep 100 &</span>`}],
+    tags:['bg','fg','nohup'] },
+  { name:'bg',      cat:'proc',  desc:'Resume a stopped job in the background.',
+    syntax:'bg [job_spec]', options:[],
+    examples:[{title:'Background job',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">bg</span> <span class="ex-arg">%1</span>`}],
+    tags:['fg','jobs'] },
+  { name:'fg',      cat:'proc',  desc:'Bring a background job to the foreground.',
+    syntax:'fg [job_spec]', options:[],
+    examples:[{title:'Foreground job',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">fg</span> <span class="ex-arg">%1</span>`}],
+    tags:['bg','jobs'] },
+  { name:'strace',  cat:'proc',  desc:'Trace system calls and signals made by a process.',
+    syntax:'strace [options] command',
+    options:[{f:'-p pid',d:'Attach to running process'},{f:'-e expr',d:'Filter by syscall type'},{f:'-o file',d:'Write output to file'},{f:'-c',d:'Count syscall stats'}],
+    examples:[{title:'Trace process',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">strace</span> <span class="ex-flag">-e open</span> <span class="ex-arg">ls</span>`}],
+    tags:['ltrace','lsof'] },
+  { name:'lsof',    cat:'proc',  desc:'List open files — files, sockets, pipes in use by processes.',
+    syntax:'lsof [options]',
+    options:[{f:'-p pid',d:'Show files for PID'},{f:'-u user',d:'Show files for user'},{f:'-i',d:'Network connections'},{f:'-n',d:'No host name resolution'}],
+    examples:[{title:'Open sockets',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">lsof</span> <span class="ex-flag">-i :80</span>\n<span class="ex-out">nginx 1234 www-data IPv4 TCP *:80</span>`}],
+    tags:['fuser','ss','netstat'] },
+  { name:'fuser',   cat:'proc',  desc:'Identify processes using files or sockets.',
+    syntax:'fuser [options] file',
+    options:[{f:'-k',d:'Kill processes using the file'},{f:'-v',d:'Verbose'},{f:'-n ns',d:'Name space: file, tcp, udp'}],
+    examples:[{title:'Find who uses port',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">fuser</span> <span class="ex-flag">-n tcp</span> <span class="ex-arg">80</span>`}],
+    tags:['lsof','kill'] },
+  { name:'time',    cat:'proc',  desc:'Measure how long a command takes to execute.',
+    syntax:'time command',
+    options:[],
+    examples:[{title:'Time a command',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">time</span> <span class="ex-arg">make</span>\n<span class="ex-out">real 0m12.345s\nuser 0m10.234s\nsys  0m0.456s</span>`}],
+    tags:['perf','bench'] },
+
+  // Network
+  { name:'ping',    cat:'net',   desc:'Test network connectivity to a host.',
+    syntax:'ping [options] host',
+    options:[{f:'-c n',d:'Send n packets only'},{f:'-i n',d:'Interval between packets'},{f:'-t ttl',d:'Set TTL'},{f:'-s size',d:'Packet size'}],
+    examples:[{title:'Ping host',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ping</span> <span class="ex-flag">-c 4</span> <span class="ex-arg">google.com</span>\n<span class="ex-out">64 bytes from 142.250.x.x: icmp_seq=1 time=12ms</span>`}],
+    tags:['traceroute','mtr','dig'] },
+  { name:'curl',    cat:'net',   desc:'Transfer data from/to servers. Supports HTTP, FTP, SMTP and more.',
+    syntax:'curl [options] URL',
+    options:[{f:'-o file',d:'Save output to file'},{f:'-I',d:'Headers only'},{f:'-X method',d:'HTTP method (GET, POST, etc.)'},{f:'-d data',d:'POST data'},{f:'-H header',d:'Custom header'},{f:'-L',d:'Follow redirects'},{f:'-s',d:'Silent mode'}],
+    examples:[{title:'HTTP request',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">curl</span> <span class="ex-flag">-X POST</span> <span class="ex-flag">-H "Content-Type: application/json"</span> \\\n       <span class="ex-flag">-d '{"key":"value"}'</span> <span class="ex-arg">https://api.example.com</span>`}],
+    tags:['wget','httpie','nc'] },
+  { name:'wget',    cat:'net',   desc:'Non-interactive network downloader.',
+    syntax:'wget [options] URL',
+    options:[{f:'-O file',d:'Save to specific file'},{f:'-r',d:'Recursive download'},{f:'-c',d:'Continue partial download'},{f:'-q',d:'Quiet mode'},{f:'--no-check-certificate',d:'Skip SSL verification'}],
+    examples:[{title:'Download file',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">wget</span> <span class="ex-flag">-c</span> <span class="ex-arg">https://example.com/large.iso</span>`}],
+    tags:['curl','aria2c'] },
+  { name:'ssh',     cat:'net',   desc:'Secure Shell — remote login protocol over encrypted connection.',
+    syntax:'ssh [options] user@host',
+    options:[{f:'-p port',d:'Port number'},{f:'-i keyfile',d:'Identity file'},{f:'-L port',d:'Local port forwarding'},{f:'-R port',d:'Remote port forwarding'},{f:'-N',d:'No shell — port forwarding only'},{f:'-v',d:'Verbose debugging'}],
+    examples:[{title:'Connect and tunnel',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ssh</span> <span class="ex-arg">user@server.com</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">ssh</span> <span class="ex-flag">-L 8080:localhost:80</span> <span class="ex-arg">user@host</span>`}],
+    tags:['scp','sftp','tmux'] },
+  { name:'scp',     cat:'net',   desc:'Secure copy — transfer files over SSH.',
+    syntax:'scp [options] source destination',
+    options:[{f:'-r',d:'Recursive'},{f:'-P port',d:'Port number'},{f:'-i key',d:'Identity file'},{f:'-p',d:'Preserve timestamps'}],
+    examples:[{title:'Copy to remote',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">scp</span> <span class="ex-flag">-r</span> <span class="ex-arg">local/ user@server:/remote/</span>`}],
+    tags:['rsync','sftp','ssh'] },
+  { name:'rsync',   cat:'net',   desc:'Fast, versatile, remote (and local) file-copying tool.',
+    syntax:'rsync [options] source destination',
+    options:[{f:'-a',d:'Archive mode (recursive + preserve attributes)'},{f:'-v',d:'Verbose'},{f:'-z',d:'Compress during transfer'},{f:'--delete',d:'Delete extra files in destination'},{f:'-n',d:'Dry run'}],
+    examples:[{title:'Sync with delete',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">rsync</span> <span class="ex-flag">-avz --delete</span> <span class="ex-arg">src/ user@host:/dest/</span>`}],
+    tags:['scp','cp','backup'] },
+  { name:'netstat', cat:'net',   desc:'Network statistics — connections, routing tables, interface stats.',
+    syntax:'netstat [options]',
+    options:[{f:'-t',d:'TCP connections'},{f:'-u',d:'UDP connections'},{f:'-l',d:'Listening sockets'},{f:'-n',d:'Show numbers instead of names'},{f:'-p',d:'Show PID/program name'}],
+    examples:[{title:'Listening ports',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">netstat</span> <span class="ex-flag">-tlnp</span>\n<span class="ex-out">tcp 0 0 0.0.0.0:80  LISTEN 1234/nginx</span>`}],
+    tags:['ss','lsof','nmap'] },
+  { name:'ss',      cat:'net',   desc:'Socket statistics — faster modern alternative to netstat.',
+    syntax:'ss [options]',
+    options:[{f:'-t',d:'TCP'},{f:'-u',d:'UDP'},{f:'-l',d:'Listening'},{f:'-n',d:'Numeric'},{f:'-p',d:'Processes'},{f:'-s',d:'Summary stats'}],
+    examples:[{title:'TCP sockets',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ss</span> <span class="ex-flag">-tlnp</span>`}],
+    tags:['netstat','lsof'] },
+  { name:'ip',      cat:'net',   desc:'Show and manipulate routing, network devices, and tunnels.',
+    syntax:'ip [options] object command',
+    options:[{f:'addr',d:'IP addresses'},{f:'route',d:'Routing table'},{f:'link',d:'Network interfaces'},{f:'neigh',d:'ARP table'}],
+    examples:[{title:'Show interfaces',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ip</span> <span class="ex-arg">addr show</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">ip</span> <span class="ex-arg">route</span>`}],
+    tags:['ifconfig','route','arp'] },
+  { name:'dig',     cat:'net',   desc:'DNS lookup utility — query DNS name servers.',
+    syntax:'dig [options] @server name type',
+    options:[{f:'+short',d:'Terse output'},{f:'+trace',d:'Trace from root'},{f:'-t type',d:'Record type (A, MX, TXT...)'}],
+    examples:[{title:'DNS query',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">dig</span> <span class="ex-arg">google.com A</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">dig</span> <span class="ex-arg">+short</span> <span class="ex-arg">example.com MX</span>`}],
+    tags:['nslookup','host','whois'] },
+  { name:'nmap',    cat:'net',   desc:'Network exploration and security auditing tool.',
+    syntax:'nmap [options] target',
+    options:[{f:'-sP',d:'Ping scan only'},{f:'-sV',d:'Version detection'},{f:'-O',d:'OS detection'},{f:'-p range',d:'Specify port range'},{f:'-A',d:'Aggressive scan'}],
+    examples:[{title:'Port scan',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">nmap</span> <span class="ex-flag">-sV -p 1-1024</span> <span class="ex-arg">192.168.1.1</span>`}],
+    tags:['ss','netstat','ping'] },
+  { name:'traceroute', cat:'net', desc:'Print the route packets take to a network host.',
+    syntax:'traceroute [options] host',
+    options:[{f:'-n',d:'Do not resolve hostnames'},{f:'-m n',d:'Max TTL (hops)'},{f:'-p port',d:'UDP port to probe'}],
+    examples:[{title:'Trace route',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">traceroute</span> <span class="ex-arg">google.com</span>`}],
+    tags:['mtr','ping','dig'] },
+  { name:'nc',      cat:'net',   desc:'Netcat — read and write data across network connections.',
+    syntax:'nc [options] host port',
+    options:[{f:'-l',d:'Listen mode'},{f:'-v',d:'Verbose'},{f:'-p port',d:'Local port'},{f:'-u',d:'UDP instead of TCP'},{f:'-z',d:'Zero-I/O mode (port scan)'}],
+    examples:[{title:'Simple server',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">nc</span> <span class="ex-flag">-lv</span> <span class="ex-arg">8080</span>         <span class="ex-out"># server</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">nc</span> <span class="ex-arg">localhost 8080</span> <span class="ex-out"># client</span>`}],
+    tags:['socat','telnet','curl'] },
+  { name:'iptables', cat:'net',  desc:'Administer IP packet filter rules in the kernel.',
+    syntax:'iptables [options] chain rule',
+    options:[{f:'-A chain',d:'Append rule to chain'},{f:'-D chain',d:'Delete rule'},{f:'-L',d:'List rules'},{f:'-F',d:'Flush all rules'},{f:'-n',d:'Numeric output'}],
+    examples:[{title:'Block IP',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">iptables</span> <span class="ex-flag">-A INPUT -s 10.0.0.1 -j DROP</span>`}],
+    tags:['nftables','ufw','firewalld'] },
+
+  // Text
+  { name:'cat',     cat:'text',  desc:'Concatenate files and print to standard output.',
+    syntax:'cat [options] files',
+    options:[{f:'-n',d:'Number output lines'},{f:'-A',d:'Show non-printing characters'},{f:'-s',d:'Squeeze blank lines'}],
+    examples:[{title:'View and combine',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">cat</span> <span class="ex-arg">file.txt</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">cat</span> <span class="ex-arg">file1 file2</span> > combined.txt`}],
+    tags:['less','more','tac'] },
+  { name:'less',    cat:'text',  desc:'View file contents with paging. Press q to quit, / to search.',
+    syntax:'less [options] file',
+    options:[{f:'-N',d:'Line numbers'},{f:'-S',d:'Chop long lines'},{f:'-F',d:'Quit if single screen'},{f:'-i',d:'Case-insensitive search'}],
+    examples:[{title:'Page through file',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">less</span> <span class="ex-flag">-N</span> <span class="ex-arg">bigfile.log</span>\n<span class="ex-out">  1 2024-01-01 ERROR failed...</span>`}],
+    tags:['more','cat','head','tail'] },
+  { name:'head',    cat:'text',  desc:'Output the first lines of a file.',
+    syntax:'head [options] file',
+    options:[{f:'-n n',d:'Print first n lines (default 10)'},{f:'-c n',d:'Print first n bytes'}],
+    examples:[{title:'First 20 lines',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">head</span> <span class="ex-flag">-n 20</span> <span class="ex-arg">logfile.txt</span>`}],
+    tags:['tail','cat','less'] },
+  { name:'tail',    cat:'text',  desc:'Output the last lines of a file. Great for log monitoring.',
+    syntax:'tail [options] file',
+    options:[{f:'-n n',d:'Print last n lines'},{f:'-f',d:'Follow — output appended data as file grows'},{f:'-F',d:'Follow and retry if file disappears'}],
+    examples:[{title:'Follow log',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">tail</span> <span class="ex-flag">-f</span> <span class="ex-arg">/var/log/syslog</span>`}],
+    tags:['head','less','journalctl'] },
+  { name:'grep',    cat:'text',  desc:'Search for patterns in files using regular expressions.',
+    syntax:'grep [options] pattern files',
+    options:[{f:'-r',d:'Recursive'},{f:'-i',d:'Case insensitive'},{f:'-n',d:'Show line numbers'},{f:'-v',d:'Invert match'},{f:'-l',d:'Print filenames only'},{f:'-c',d:'Count matches'},{f:'-E',d:'Extended regex'},{f:'-P',d:'Perl-compatible regex'}],
+    examples:[{title:'Search in files',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">grep</span> <span class="ex-flag">-rn</span> <span class="ex-arg">"ERROR"</span> <span class="ex-arg">/var/log/</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">grep</span> <span class="ex-flag">-E</span> <span class="ex-arg">"^[0-9]+"</span> <span class="ex-arg">data.txt</span>`}],
+    tags:['awk','sed','ripgrep'] },
+  { name:'sed',     cat:'text',  desc:'Stream editor for filtering and transforming text.',
+    syntax:'sed [options] script [file]',
+    options:[{f:'-i',d:'Edit in place'},{f:'-n',d:'Suppress default output'},{f:'-e script',d:'Add script'}],
+    examples:[{title:'Replace text',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">sed</span> <span class="ex-arg">'s/old/new/g'</span> <span class="ex-arg">file.txt</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">sed</span> <span class="ex-flag">-i</span> <span class="ex-arg">'s/foo/bar/g'</span> <span class="ex-arg">*.txt</span>`}],
+    tags:['awk','grep','tr'] },
+  { name:'awk',     cat:'text',  desc:'Pattern scanning and processing language for columnar data.',
+    syntax:"awk 'program' file",
+    options:[{f:'-F sep',d:'Field separator'},{f:'-v var=val',d:'Set variable'},{f:'-f file',d:'Read program from file'}],
+    examples:[{title:'Print columns',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">awk</span> <span class="ex-flag">-F:</span> <span class="ex-arg">'{print $1,$3}'</span> <span class="ex-arg">/etc/passwd</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">awk</span> <span class="ex-arg">'{sum+=$1} END{print sum}'</span>`}],
+    tags:['sed','grep','cut'] },
+  { name:'cut',     cat:'text',  desc:'Remove sections from each line of files.',
+    syntax:'cut [options] file',
+    options:[{f:'-d sep',d:'Field delimiter'},{f:'-f n',d:'Select fields'},{f:'-c n',d:'Select characters'},{f:'-b n',d:'Select bytes'}],
+    examples:[{title:'Extract column',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">cut</span> <span class="ex-flag">-d: -f1</span> <span class="ex-arg">/etc/passwd</span>`}],
+    tags:['awk','tr','paste'] },
+  { name:'sort',    cat:'text',  desc:'Sort lines of text files.',
+    syntax:'sort [options] file',
+    options:[{f:'-n',d:'Numeric sort'},{f:'-r',d:'Reverse'},{f:'-k n',d:'Sort by field n'},{f:'-t sep',d:'Field separator'},{f:'-u',d:'Unique — remove duplicates'},{f:'-h',d:'Human-readable numeric sort'}],
+    examples:[{title:'Sort numerically',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">sort</span> <span class="ex-flag">-n -r</span> <span class="ex-arg">numbers.txt</span>`}],
+    tags:['uniq','awk'] },
+  { name:'uniq',    cat:'text',  desc:'Report or omit repeated lines.',
+    syntax:'uniq [options] file',
+    options:[{f:'-c',d:'Count occurrences'},{f:'-d',d:'Only duplicate lines'},{f:'-u',d:'Only unique lines'},{f:'-i',d:'Case insensitive'}],
+    examples:[{title:'Count unique',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">sort</span> <span class="ex-arg">file</span> | <span class="ex-cmd">uniq</span> <span class="ex-flag">-c</span> | <span class="ex-cmd">sort</span> <span class="ex-flag">-rn</span>`}],
+    tags:['sort','comm'] },
+  { name:'wc',      cat:'text',  desc:'Print newline, word, and byte counts for files.',
+    syntax:'wc [options] files',
+    options:[{f:'-l',d:'Line count'},{f:'-w',d:'Word count'},{f:'-c',d:'Byte count'},{f:'-m',d:'Character count'}],
+    examples:[{title:'Count lines',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">wc</span> <span class="ex-flag">-l</span> <span class="ex-arg">file.txt</span>\n<span class="ex-out">   142 file.txt</span>`}],
+    tags:['grep','awk'] },
+  { name:'tr',      cat:'text',  desc:'Translate or delete characters.',
+    syntax:'tr [options] set1 [set2]',
+    options:[{f:'-d',d:'Delete characters in set1'},{f:'-s',d:'Squeeze repeated characters'},{f:'-c',d:'Complement set1'}],
+    examples:[{title:'Case convert',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">echo</span> <span class="ex-arg">"Hello World"</span> | <span class="ex-cmd">tr</span> <span class="ex-arg">a-z A-Z</span>\n<span class="ex-out">HELLO WORLD</span>`}],
+    tags:['sed','awk'] },
+  { name:'tee',     cat:'text',  desc:'Read stdin and write to stdout and files simultaneously.',
+    syntax:'tee [options] files',
+    options:[{f:'-a',d:'Append instead of overwrite'}],
+    examples:[{title:'Split output',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ls</span> | <span class="ex-cmd">tee</span> <span class="ex-arg">output.txt</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">.txt</span>`}],
+    tags:['cat','redirect'] },
+  { name:'diff',    cat:'text',  desc:'Compare files line by line.',
+    syntax:'diff [options] file1 file2',
+    options:[{f:'-u',d:'Unified format (used for patches)'},{f:'-r',d:'Recursive'},{f:'-i',d:'Ignore case'},{f:'-b',d:'Ignore whitespace changes'}],
+    examples:[{title:'Unified diff',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">diff</span> <span class="ex-flag">-u</span> <span class="ex-arg">original.txt updated.txt</span>`}],
+    tags:['patch','vimdiff','meld'] },
+  { name:'paste',   cat:'text',  desc:'Merge lines of files — join columns side by side.',
+    syntax:'paste [options] files',
+    options:[{f:'-d sep',d:'Delimiter between columns'},{f:'-s',d:'Serial mode — one file at a time'}],
+    examples:[{title:'Join columns',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">paste</span> <span class="ex-flag">-d,</span> <span class="ex-arg">names.txt ages.txt</span>`}],
+    tags:['join','cut','awk'] },
+  { name:'printf',  cat:'text',  desc:'Format and print data — more powerful than echo.',
+    syntax:'printf format [args]',
+    options:[],
+    examples:[{title:'Format output',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">printf</span> <span class="ex-arg">"%-10s %5d\\n" "item" 42</span>\n<span class="ex-out">item           42</span>`}],
+    tags:['echo','awk'] },
+  { name:'strings', cat:'text',  desc:'Print printable character sequences from binary files.',
+    syntax:'strings [options] file',
+    options:[{f:'-n n',d:'Minimum string length (default 4)'},{f:'-a',d:'Scan entire file'}],
+    examples:[{title:'Find strings',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">strings</span> <span class="ex-arg">binary | grep password</span>`}],
+    tags:['hexdump','file','xxd'] },
+
+  // Search
+  { name:'find',    cat:'search', desc:'Search for files in a directory hierarchy.',
+    syntax:'find path [expression]',
+    options:[{f:'-name',d:'File name pattern'},{f:'-type',d:'f=file, d=directory, l=symlink'},{f:'-size',d:'File size (e.g. +10M)'},{f:'-mtime',d:'Modified n days ago'},{f:'-exec',d:'Execute command on matches'},{f:'-not',d:'Negate expression'}],
+    examples:[{title:'Find and delete',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">find</span> <span class="ex-arg">.</span> <span class="ex-flag">-name "*.log" -mtime +30</span> <span class="ex-flag">-delete</span>`}],
+    tags:['locate','fd','grep'] },
+  { name:'locate',  cat:'search', desc:'Find files by name using a database (faster than find).',
+    syntax:'locate [options] pattern',
+    options:[{f:'-i',d:'Case insensitive'},{f:'-c',d:'Count results'},{f:'-l n',d:'Limit results'}],
+    examples:[{title:'Find by name',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">locate</span> <span class="ex-arg">nginx.conf</span>`}],
+    tags:['find','updatedb'] },
+  { name:'which',   cat:'search', desc:'Locate a command — show its full path.',
+    syntax:'which [-a] command',
+    options:[{f:'-a',d:'Show all matching paths'}],
+    examples:[{title:'Find command path',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">which</span> <span class="ex-arg">python3</span>\n<span class="ex-out">/usr/bin/python3</span>`}],
+    tags:['whereis','type','command'] },
+  { name:'whereis', cat:'search', desc:'Locate binary, source, and man page files.',
+    syntax:'whereis [options] command',
+    options:[{f:'-b',d:'Binaries only'},{f:'-m',d:'Manual pages only'},{f:'-s',d:'Sources only'}],
+    examples:[{title:'Find all locations',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">whereis</span> <span class="ex-arg">ls</span>\n<span class="ex-out">ls: /bin/ls /usr/share/man/man1/ls.1.gz</span>`}],
+    tags:['which','type'] },
+  { name:'xargs',   cat:'search', desc:'Build and execute commands from standard input.',
+    syntax:'xargs [options] command',
+    options:[{f:'-0',d:'Null-separated items (from find -print0)'},{f:'-n n',d:'Max n arguments per command'},{f:'-P n',d:'Run n parallel processes'},{f:'-I {}',d:'Replace {} with argument'}],
+    examples:[{title:'Delete results',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">find</span> <span class="ex-arg">. -name "*.tmp"</span> | <span class="ex-cmd">xargs</span> <span class="ex-arg">rm</span>`}],
+    tags:['find','parallel','exec'] },
+
+  // System
+  { name:'uname',   cat:'sys',   desc:'Print system information — kernel, hostname, architecture.',
+    syntax:'uname [options]',
+    options:[{f:'-a',d:'All information'},{f:'-r',d:'Kernel release'},{f:'-m',d:'Machine hardware name'},{f:'-s',d:'Kernel name'}],
+    examples:[{title:'Full info',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">uname</span> <span class="ex-flag">-a</span>\n<span class="ex-out">Linux host 5.15.0 #1 SMP x86_64 GNU/Linux</span>`}],
+    tags:['hostname','lsb_release','arch'] },
+  { name:'uptime',  cat:'sys',   desc:'Tell how long the system has been running.',
+    syntax:'uptime',
+    options:[{f:'-p',d:'Pretty format'},{f:'-s',d:'System up since'}],
+    examples:[{title:'Check uptime',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">uptime</span>\n<span class="ex-out">14:23:01 up 2 days,  3:14,  2 users,  load average: 0.15</span>`}],
+    tags:['uname','w','top'] },
+  { name:'free',    cat:'sys',   desc:'Display amount of free and used memory in the system.',
+    syntax:'free [options]',
+    options:[{f:'-h',d:'Human readable sizes'},{f:'-m',d:'Megabytes'},{f:'-g',d:'Gigabytes'},{f:'-s n',d:'Update every n seconds'}],
+    examples:[{title:'Memory usage',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">free</span> <span class="ex-flag">-h</span>\n<span class="ex-out">              total  used  free  available\nMem:           15Gi  8.2Gi 2.1Gi  5.1Gi</span>`}],
+    tags:['top','vmstat','htop'] },
+  { name:'df',      cat:'sys',   desc:'Report filesystem disk space usage.',
+    syntax:'df [options] [file]',
+    options:[{f:'-h',d:'Human readable sizes'},{f:'-T',d:'Show filesystem type'},{f:'-i',d:'Show inode usage'}],
+    examples:[{title:'Disk usage',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">df</span> <span class="ex-flag">-h</span>\n<span class="ex-out">Filesystem  Size  Used Avail Use%  Mounted\n/dev/sda1    50G   23G   25G  48%  /</span>`}],
+    tags:['du','lsblk','mount'] },
+  { name:'du',      cat:'sys',   desc:'Estimate file space usage — disk usage per directory.',
+    syntax:'du [options] [path]',
+    options:[{f:'-h',d:'Human readable'},{f:'-s',d:'Summary total only'},{f:'-d n',d:'Max depth n'},{f:'--exclude',d:'Exclude pattern'}],
+    examples:[{title:'Top 10 dirs',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">du</span> <span class="ex-flag">-sh</span> <span class="ex-arg">/*</span> | <span class="ex-cmd">sort</span> <span class="ex-flag">-rh</span> | <span class="ex-cmd">head</span>`}],
+    tags:['df','ncdu'] },
+  { name:'vmstat',  cat:'sys',   desc:'Report virtual memory statistics.',
+    syntax:'vmstat [delay [count]]',
+    options:[{f:'-a',d:'Show active/inactive memory'},{f:'-d',d:'Disk statistics'},{f:'-s',d:'Event counters table'}],
+    examples:[{title:'Continuous stats',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">vmstat</span> <span class="ex-arg">2 5</span>  <span class="ex-out"># 5 updates, 2s interval</span>`}],
+    tags:['free','top','iostat'] },
+  { name:'iostat',  cat:'sys',   desc:'Report CPU and I/O statistics for devices and partitions.',
+    syntax:'iostat [options] [interval [count]]',
+    options:[{f:'-x',d:'Extended stats'},{f:'-d',d:'Device report only'},{f:'-h',d:'Human readable'}],
+    examples:[{title:'Extended I/O',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">iostat</span> <span class="ex-flag">-x</span> <span class="ex-arg">2</span>`}],
+    tags:['vmstat','iotop','blktrace'] },
+  { name:'dmesg',   cat:'sys',   desc:'Print or control the kernel ring buffer (boot & hardware messages).',
+    syntax:'dmesg [options]',
+    options:[{f:'-H',d:'Human readable timestamps'},{f:'-T',d:'Real timestamps'},{f:'-l level',d:'Filter by log level'},{f:'-w',d:'Follow — wait for new messages'}],
+    examples:[{title:'Recent kernel msgs',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">dmesg</span> <span class="ex-flag">-T</span> | <span class="ex-cmd">tail</span> <span class="ex-flag">-20</span>`}],
+    tags:['journalctl','syslog'] },
+  { name:'journalctl', cat:'sys', desc:'Query the systemd journal log.',
+    syntax:'journalctl [options]',
+    options:[{f:'-f',d:'Follow new entries'},{f:'-u unit',d:'Filter by unit'},{f:'-n n',d:'Last n lines'},{f:'-p level',d:'Priority level'},{f:'--since',d:'Time filter'}],
+    examples:[{title:'Follow service log',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">journalctl</span> <span class="ex-flag">-fu</span> <span class="ex-arg">nginx.service</span>`}],
+    tags:['dmesg','syslog','systemctl'] },
+  { name:'systemctl', cat:'sys', desc:'Control the systemd system and service manager.',
+    syntax:'systemctl [command] [unit]',
+    options:[{f:'start',d:'Start a service'},{f:'stop',d:'Stop a service'},{f:'restart',d:'Restart a service'},{f:'status',d:'Show status'},{f:'enable',d:'Enable at boot'},{f:'disable',d:'Disable at boot'}],
+    examples:[{title:'Manage service',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">systemctl</span> <span class="ex-arg">status nginx</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">systemctl</span> <span class="ex-arg">restart nginx</span>`}],
+    tags:['service','init'] },
+  { name:'cron',    cat:'sys',   desc:'Daemon to execute scheduled commands. Use crontab to edit.',
+    syntax:'crontab [-e|-l|-r] [user]',
+    options:[{f:'-e',d:'Edit crontab'},{f:'-l',d:'List crontab'},{f:'-r',d:'Remove crontab'}],
+    examples:[{title:'Cron expression',code:`<span class="ex-out"># MIN HR DOM MON DOW CMD</span>\n<span class="ex-out">*/5 * * * * /script.sh  # every 5 min</span>`}],
+    tags:['at','systemd timer'] },
+  { name:'hostname', cat:'sys',  desc:'Show or set the system hostname.',
+    syntax:'hostname [options] [name]',
+    options:[{f:'-f',d:'Fully qualified domain name'},{f:'-i',d:'IP address'},{f:'-d',d:'Domain name'}],
+    examples:[{title:'Get hostname',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">hostname</span>\n<span class="ex-out">myserver</span>`}],
+    tags:['uname','hostnamectl'] },
+  { name:'date',    cat:'sys',   desc:'Print or set the system date and time.',
+    syntax:'date [options] [+format]',
+    options:[{f:'-u',d:'Universal (UTC) time'},{f:'-d str',d:'Parse and display date string'},{f:'-s str',d:'Set date from string'}],
+    examples:[{title:'Format date',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">date</span> <span class="ex-arg">+"%Y-%m-%d %H:%M:%S"</span>\n<span class="ex-out">2024-01-10 14:23:01</span>`}],
+    tags:['timedatectl','cal'] },
+  { name:'env',     cat:'sys',   desc:'Print environment variables or run a command in modified environment.',
+    syntax:'env [options] [name=value ...] [command]',
+    options:[{f:'-i',d:'Start with empty environment'},{f:'-u name',d:'Remove variable from environment'}],
+    examples:[{title:'List variables',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">env</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">PATH`}],
+    tags:['export','printenv','set'] },
+  { name:'export',  cat:'sys',   desc:'Set environment variables for child processes.',
+    syntax:'export [name[=value] ...]',
+    options:[{f:'-n',d:'Remove export attribute'},{f:'-p',d:'List exported variables'}],
+    examples:[{title:'Set variable',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">export</span> <span class="ex-arg">PATH="$PATH:/opt/bin"</span>`}],
+    tags:['env','unset','source'] },
+
+  // Archive
+  { name:'tar',     cat:'arch',  desc:'Tape archive — compress and extract archives.',
+    syntax:'tar [options] archive files',
+    options:[{f:'-c',d:'Create archive'},{f:'-x',d:'Extract archive'},{f:'-t',d:'List contents'},{f:'-z',d:'Gzip compression'},{f:'-j',d:'Bzip2 compression'},{f:'-J',d:'XZ compression'},{f:'-v',d:'Verbose'},{f:'-f file',d:'Archive file'}],
+    examples:[{title:'Create and extract',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">tar</span> <span class="ex-flag">-czf</span> <span class="ex-arg">archive.tar.gz dir/</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">tar</span> <span class="ex-flag">-xzf</span> <span class="ex-arg">archive.tar.gz</span>`}],
+    tags:['gzip','zip','unzip','zstd'] },
+  { name:'gzip',    cat:'arch',  desc:'Compress files using the gzip algorithm.',
+    syntax:'gzip [options] files',
+    options:[{f:'-d',d:'Decompress'},{f:'-k',d:'Keep original file'},{f:'-9',d:'Best compression'},{f:'-l',d:'List compressed file info'}],
+    examples:[{title:'Compress file',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">gzip</span> <span class="ex-flag">-k9</span> <span class="ex-arg">file.txt</span>  <span class="ex-out"># keeps original</span>`}],
+    tags:['gunzip','bzip2','xz','tar'] },
+  { name:'zip',     cat:'arch',  desc:'Package and compress files to ZIP format.',
+    syntax:'zip [options] archive files',
+    options:[{f:'-r',d:'Recursive'},{f:'-9',d:'Best compression'},{f:'-e',d:'Encrypt with password'},{f:'-u',d:'Update existing entries'}],
+    examples:[{title:'Zip directory',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">zip</span> <span class="ex-flag">-r</span> <span class="ex-arg">archive.zip dir/</span>`}],
+    tags:['unzip','tar','7z'] },
+  { name:'unzip',   cat:'arch',  desc:'Extract files from ZIP archives.',
+    syntax:'unzip [options] archive',
+    options:[{f:'-d dir',d:'Extract to directory'},{f:'-l',d:'List contents'},{f:'-t',d:'Test archive integrity'},{f:'-o',d:'Overwrite without prompting'}],
+    examples:[{title:'Extract to dir',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">unzip</span> <span class="ex-flag">-d output/</span> <span class="ex-arg">archive.zip</span>`}],
+    tags:['zip','tar'] },
+  { name:'xz',      cat:'arch',  desc:'Compress files with LZMA/XZ algorithm (better compression than gzip).',
+    syntax:'xz [options] files',
+    options:[{f:'-d',d:'Decompress'},{f:'-k',d:'Keep original'},{f:'-9',d:'Best compression'},{f:'-T n',d:'Use n threads'}],
+    examples:[{title:'Compress with XZ',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">xz</span> <span class="ex-flag">-9 -k -T4</span> <span class="ex-arg">bigfile.tar</span>`}],
+    tags:['gzip','bzip2','tar'] },
+  { name:'zstd',    cat:'arch',  desc:'Fast lossless compression using Zstandard algorithm.',
+    syntax:'zstd [options] files',
+    options:[{f:'-d',d:'Decompress'},{f:'-#',d:'Compression level 1-19'},{f:'-T n',d:'Threads'},{f:'--fast',d:'Fast mode'}],
+    examples:[{title:'Compress fast',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">zstd</span> <span class="ex-flag">-3 -T4</span> <span class="ex-arg">bigfile.tar</span>`}],
+    tags:['gzip','xz','tar'] },
+
+  // Disk
+  { name:'fdisk',   cat:'disk',  desc:'Partition table manipulator for Linux.',
+    syntax:'fdisk [options] device',
+    options:[{f:'-l',d:'List partition tables'},{f:'-u',d:'Use sectors for sizes'}],
+    examples:[{title:'List partitions',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">fdisk</span> <span class="ex-flag">-l</span>\n<span class="ex-out">/dev/sda1  2048  1050623  512M  83 Linux</span>`}],
+    tags:['parted','lsblk','blkid'] },
+  { name:'lsblk',   cat:'disk',  desc:'List block devices — drives, partitions, LVM volumes.',
+    syntax:'lsblk [options]',
+    options:[{f:'-f',d:'Show filesystem info'},{f:'-o cols',d:'Specify output columns'},{f:'-J',d:'JSON output'}],
+    examples:[{title:'List block devices',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">lsblk</span> <span class="ex-flag">-f</span>\n<span class="ex-out">NAME   FSTYPE SIZE  MOUNTPOINT\nsda1   ext4   50G   /</span>`}],
+    tags:['fdisk','blkid','df'] },
+  { name:'mount',   cat:'disk',  desc:'Mount a filesystem.',
+    syntax:'mount [options] device mountpoint',
+    options:[{f:'-t type',d:'Filesystem type'},{f:'-o options',d:'Mount options'},{f:'-r',d:'Read-only'},{f:'-a',d:'Mount all in /etc/fstab'}],
+    examples:[{title:'Mount USB drive',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">mount</span> <span class="ex-flag">-t ext4</span> <span class="ex-arg">/dev/sdb1 /mnt/usb</span>`}],
+    tags:['umount','fstab','lsblk'] },
+  { name:'umount',  cat:'disk',  desc:'Unmount filesystems.',
+    syntax:'umount [options] mountpoint',
+    options:[{f:'-l',d:'Lazy unmount'},{f:'-f',d:'Force unmount'},{f:'-a',d:'Unmount all in /etc/mtab'}],
+    examples:[{title:'Unmount',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">umount</span> <span class="ex-arg">/mnt/usb</span>`}],
+    tags:['mount','sync'] },
+  { name:'mkfs',    cat:'disk',  desc:'Build a Linux filesystem on a device.',
+    syntax:'mkfs -t type device',
+    options:[{f:'-t type',d:'Filesystem type: ext4, xfs, btrfs...'},{f:'-L label',d:'Filesystem label'}],
+    examples:[{title:'Format partition',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">mkfs</span> <span class="ex-flag">-t ext4</span> <span class="ex-arg">/dev/sdb1</span>`}],
+    tags:['fdisk','mount','fsck'] },
+  { name:'fsck',    cat:'disk',  desc:'Check and repair a Linux filesystem.',
+    syntax:'fsck [options] device',
+    options:[{f:'-a',d:'Automatic repair'},{f:'-n',d:'Dry run'},{f:'-t type',d:'Filesystem type'},{f:'-y',d:'Auto yes to repairs'}],
+    examples:[{title:'Check filesystem',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">fsck</span> <span class="ex-arg">/dev/sda1</span>`}],
+    tags:['mkfs','mount','e2fsck'] },
+  { name:'dd',      cat:'disk',  desc:'Convert and copy files — raw disk operations, backups.',
+    syntax:'dd if=input of=output [options]',
+    options:[{f:'bs=n',d:'Block size'},{f:'count=n',d:'Copy n blocks only'},{f:'skip=n',d:'Skip n input blocks'},{f:'status=progress',d:'Show progress'}],
+    examples:[{title:'Disk image',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">dd</span> <span class="ex-arg">if=/dev/sda of=disk.img</span> <span class="ex-flag">bs=4M status=progress</span>`}],
+    tags:['cp','rsync','fdisk'] },
+  { name:'blkid',   cat:'disk',  desc:'Locate and print block device attributes (UUID, type, label).',
+    syntax:'blkid [options] [device]',
+    options:[{f:'-o value',d:'Output specific field'},{f:'-U uuid',d:'Find device by UUID'}],
+    examples:[{title:'List UUIDs',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">blkid</span>\n<span class="ex-out">/dev/sda1: UUID="1234..." TYPE="ext4"</span>`}],
+    tags:['lsblk','fdisk'] },
+  { name:'sync',    cat:'disk',  desc:'Flush filesystem caches — write pending data to disk.',
+    syntax:'sync', options:[],
+    examples:[{title:'Flush to disk',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">sync</span>  <span class="ex-out"># always run before umount</span>`}],
+    tags:['umount','flush'] },
+
+  // Users
+  { name:'whoami',  cat:'user',  desc:'Print effective userid — who you are logged in as.',
+    syntax:'whoami', options:[],
+    examples:[{title:'Check user',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">whoami</span>\n<span class="ex-out">john</span>`}],
+    tags:['id','who','w'] },
+  { name:'id',      cat:'user',  desc:'Print user and group information.',
+    syntax:'id [user]',
+    options:[{f:'-u',d:'UID only'},{f:'-g',d:'GID only'},{f:'-G',d:'All GIDs'},{f:'-n',d:'Print name instead of number'}],
+    examples:[{title:'Show IDs',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">id</span>\n<span class="ex-out">uid=1000(user) gid=1000(user) groups=1000,4(adm),27(sudo)</span>`}],
+    tags:['whoami','groups'] },
+  { name:'sudo',    cat:'user',  desc:'Execute command as another user — typically root.',
+    syntax:'sudo [options] command',
+    options:[{f:'-u user',d:'Run as specified user'},{f:'-i',d:'Simulate initial login'},{f:'-s',d:'Start a shell'},{f:'-l',d:'List allowed commands'},{f:'-k',d:'Invalidate timestamp'}],
+    examples:[{title:'Root shell',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">sudo</span> <span class="ex-flag">-i</span>   <span class="ex-out"># root shell</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">sudo</span> <span class="ex-flag">-u postgres</span> <span class="ex-arg">psql</span>`}],
+    tags:['su','visudo'] },
+  { name:'su',      cat:'user',  desc:'Switch user — run a shell or command as another user.',
+    syntax:'su [options] [user]',
+    options:[{f:'-',d:'Full login shell'},{f:'-c cmd',d:'Execute single command'},{f:'-s shell',d:'Use specified shell'}],
+    examples:[{title:'Switch to root',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">su</span> <span class="ex-flag">-</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">su</span> <span class="ex-arg">- admin</span>`}],
+    tags:['sudo','runuser'] },
+  { name:'useradd', cat:'user',  desc:'Create a new user account.',
+    syntax:'useradd [options] username',
+    options:[{f:'-m',d:'Create home directory'},{f:'-s shell',d:'Login shell'},{f:'-G groups',d:'Supplementary groups'},{f:'-u uid',d:'Specific UID'}],
+    examples:[{title:'Add user',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">useradd</span> <span class="ex-flag">-m -s /bin/bash</span> <span class="ex-arg">newuser</span>`}],
+    tags:['usermod','userdel','passwd'] },
+  { name:'usermod', cat:'user',  desc:'Modify a user account.',
+    syntax:'usermod [options] username',
+    options:[{f:'-aG groups',d:'Add to groups (append)'},{f:'-l name',d:'Rename login'},{f:'-d dir',d:'Change home directory'},{f:'-s shell',d:'Change shell'}],
+    examples:[{title:'Add to group',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">usermod</span> <span class="ex-flag">-aG sudo</span> <span class="ex-arg">user</span>`}],
+    tags:['useradd','userdel','groups'] },
+  { name:'passwd',  cat:'user',  desc:'Change user password.',
+    syntax:'passwd [options] [user]',
+    options:[{f:'-l',d:'Lock account'},{f:'-u',d:'Unlock account'},{f:'-d',d:'Delete password'},{f:'-e',d:'Expire password (force change at login)'}],
+    examples:[{title:'Change password',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">passwd</span> <span class="ex-arg">username</span>`}],
+    tags:['useradd','chage'] },
+  { name:'groups',  cat:'user',  desc:'Print the groups a user is in.',
+    syntax:'groups [user]', options:[],
+    examples:[{title:'List groups',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">groups</span>\n<span class="ex-out">user sudo docker</span>`}],
+    tags:['id','gpasswd'] },
+  { name:'who',     cat:'user',  desc:'Show who is logged in.',
+    syntax:'who [options]', options:[{f:'-a',d:'All info'},{f:'-b',d:'Last system boot time'}],
+    examples:[{title:'Logged in users',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">who</span>\n<span class="ex-out">john tty1 2024-01-10 09:00</span>`}],
+    tags:['w','last','users'] },
+  { name:'last',    cat:'user',  desc:'Show listing of last logged in users.',
+    syntax:'last [options] [user]',
+    options:[{f:'-n n',d:'Last n records'},{f:'-F',d:'Full dates and times'},{f:'-x',d:'Show shutdown entries too'}],
+    examples:[{title:'Recent logins',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">last</span> <span class="ex-flag">-20</span>`}],
+    tags:['who','lastlog','w'] },
+
+  // Package
+  { name:'apt',     cat:'pkg',   desc:'APT — Advanced Package Tool for Debian/Ubuntu systems.',
+    syntax:'apt [command] [packages]',
+    options:[{f:'update',d:'Refresh package lists'},{f:'upgrade',d:'Upgrade installed packages'},{f:'install',d:'Install packages'},{f:'remove',d:'Remove package'},{f:'purge',d:'Remove + config files'},{f:'search',d:'Search packages'},{f:'show',d:'Show package info'}],
+    examples:[{title:'Update and install',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">apt</span> <span class="ex-arg">update && apt upgrade -y</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">apt</span> <span class="ex-arg">install nginx</span>`}],
+    tags:['dpkg','snap','apt-get'] },
+  { name:'dnf',     cat:'pkg',   desc:'DNF — package manager for Fedora, RHEL, CentOS.',
+    syntax:'dnf [command] [packages]',
+    options:[{f:'install',d:'Install package'},{f:'remove',d:'Remove package'},{f:'update',d:'Update all packages'},{f:'search',d:'Search packages'},{f:'info',d:'Package information'}],
+    examples:[{title:'Install package',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">dnf</span> <span class="ex-arg">install httpd</span>`}],
+    tags:['yum','rpm','apt'] },
+  { name:'pacman',  cat:'pkg',   desc:'Package manager for Arch Linux and derivatives.',
+    syntax:'pacman [options] [targets]',
+    options:[{f:'-S',d:'Sync (install)'},{f:'-R',d:'Remove'},{f:'-U',d:'Upgrade from file'},{f:'-Syu',d:'Update all packages'},{f:'-Ss',d:'Search in sync db'},{f:'-Q',d:'Query local db'}],
+    examples:[{title:'Update system',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">pacman</span> <span class="ex-flag">-Syu</span>  <span class="ex-out"># full system update</span>`}],
+    tags:['yay','paru','apt'] },
+  { name:'snap',    cat:'pkg',   desc:'Install and manage snap packages — universal Linux packages.',
+    syntax:'snap [command] [name]',
+    options:[{f:'install',d:'Install snap'},{f:'remove',d:'Remove snap'},{f:'refresh',d:'Update snaps'},{f:'list',d:'List installed snaps'},{f:'info',d:'Package information'}],
+    examples:[{title:'Install snap',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">snap</span> <span class="ex-arg">install code --classic</span>`}],
+    tags:['flatpak','apt'] },
+  { name:'flatpak', cat:'pkg',   desc:'Install and manage Flatpak applications.',
+    syntax:'flatpak [command] [app]',
+    options:[{f:'install',d:'Install app'},{f:'remove',d:'Remove app'},{f:'update',d:'Update apps'},{f:'list',d:'List installed apps'},{f:'run',d:'Run app'}],
+    examples:[{title:'Install app',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">flatpak</span> <span class="ex-arg">install flathub com.spotify.Client</span>`}],
+    tags:['snap','apt'] },
+
+  // Shell
+  { name:'alias',   cat:'shell', desc:'Create command shortcuts.',
+    syntax:"alias [name='command']",
+    options:[],
+    examples:[{title:'Create aliases',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">alias</span> <span class="ex-arg">ll='ls -lah'</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">alias</span> <span class="ex-arg">gs='git status'</span>`}],
+    tags:['unalias','function'] },
+  { name:'history', cat:'shell', desc:'Display command history. Use ! to repeat commands.',
+    syntax:'history [n]',
+    options:[{f:'-c',d:'Clear history'},{f:'-d n',d:'Delete entry n'}],
+    examples:[{title:'Search history',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">history</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">docker</span>\n<span class="ex-prompt">$</span> <span class="ex-arg">!123</span>  <span class="ex-out"># repeat command 123</span>`}],
+    tags:['alias','fc'] },
+  { name:'source',  cat:'shell', desc:'Execute commands from a file in the current shell.',
+    syntax:'source file  # or: . file',
+    options:[],
+    examples:[{title:'Reload config',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">source</span> <span class="ex-arg">~/.bashrc</span>\n<span class="ex-prompt">$</span> <span class="ex-arg">. ~/.profile</span>  <span class="ex-out"># POSIX way</span>`}],
+    tags:['export','bash'] },
+  { name:'set',     cat:'shell', desc:'Set or unset shell options and positional parameters.',
+    syntax:'set [options]',
+    options:[{f:'-e',d:'Exit on error'},{f:'-x',d:'Print each command before execution'},{f:'-u',d:'Error on undefined variable'},{f:'-o pipefail',d:'Exit on pipe failure'}],
+    examples:[{title:'Strict mode',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">set</span> <span class="ex-flag">-euxo pipefail</span>  <span class="ex-out"># for scripts</span>`}],
+    tags:['unset','shopt','bash'] },
+  { name:'echo',    cat:'shell', desc:'Display a line of text.',
+    syntax:'echo [options] string',
+    options:[{f:'-n',d:'No trailing newline'},{f:'-e',d:'Enable escape sequences (\\n, \\t etc)'},{f:'-E',d:'Disable escapes (default)'}],
+    examples:[{title:'Print text',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">echo</span> <span class="ex-arg">"Hello $USER"</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">echo</span> <span class="ex-flag">-e</span> <span class="ex-arg">"line1\\nline2"</span>`}],
+    tags:['printf','read'] },
+  { name:'read',    cat:'shell', desc:'Read a line from stdin into variables.',
+    syntax:'read [options] [variables]',
+    options:[{f:'-p prompt',d:'Display prompt'},{f:'-s',d:'Silent mode (for passwords)'},{f:'-t n',d:'Timeout in seconds'},{f:'-a arr',d:'Read into array'}],
+    examples:[{title:'Read input',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">read</span> <span class="ex-flag">-p</span> <span class="ex-arg">"Name: " name</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">read</span> <span class="ex-flag">-s -p</span> <span class="ex-arg">"Password: " pass</span>`}],
+    tags:['echo','input'] },
+  { name:'test',    cat:'shell', desc:'Evaluate conditional expressions. Also written as [ ... ].',
+    syntax:'test expression  # or: [ expression ]',
+    options:[{f:'-f file',d:'True if file exists'},{f:'-d dir',d:'True if directory exists'},{f:'-z str',d:'True if string is empty'},{f:'-n str',d:'True if string is not empty'},{f:'-eq',d:'Numeric equal'}],
+    examples:[{title:'File check',code:`<span class="ex-out">if [ -f file.txt ]; then\n  echo "exists"\nfi</span>`}],
+    tags:['if','bash','conditional'] },
+  { name:'xargs',   cat:'shell', desc:'Build and execute command lines from standard input.',
+    syntax:'xargs [options] command',
+    options:[{f:'-0',d:'Null delimited'},{f:'-I{}',d:'Replace {} with arg'},{f:'-n n',d:'Max args per run'},{f:'-P n',d:'Parallel processes'}],
+    examples:[{title:'Parallel execution',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">cat</span> <span class="ex-arg">urls.txt</span> | <span class="ex-cmd">xargs</span> <span class="ex-flag">-P4 -I{}</span> <span class="ex-arg">wget {}</span>`}],
+    tags:['find','parallel'] },
+  { name:'screen',  cat:'shell', desc:'Terminal multiplexer — persistent sessions that survive disconnect.',
+    syntax:'screen [options] [command]',
+    options:[{f:'-S name',d:'Name session'},{f:'-r',d:'Reattach session'},{f:'-ls',d:'List sessions'},{f:'-d',d:'Detach running screen'}],
+    examples:[{title:'Screen session',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">screen</span> <span class="ex-flag">-S mysession</span>\n<span class="ex-out">Ctrl+A D  # detach</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">screen</span> <span class="ex-flag">-r mysession</span>`}],
+    tags:['tmux','nohup'] },
+  { name:'tmux',    cat:'shell', desc:'Terminal multiplexer — windows, panes, persistent sessions.',
+    syntax:'tmux [command]',
+    options:[{f:'new -s name',d:'New named session'},{f:'attach -t name',d:'Attach to session'},{f:'ls',d:'List sessions'},{f:'kill-session',d:'Kill session'}],
+    examples:[{title:'New session',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">tmux</span> <span class="ex-arg">new -s dev</span>\n<span class="ex-out">Ctrl+B D  # detach</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">tmux</span> <span class="ex-arg">attach -t dev</span>`}],
+    tags:['screen','bash'] },
+  { name:'bash',    cat:'shell', desc:'Execute bash scripts or start interactive bash shell.',
+    syntax:'bash [options] [script]',
+    options:[{f:'-x',d:'Trace execution'},{f:'-n',d:'Syntax check only'},{f:'-c cmd',d:'Execute command string'}],
+    examples:[{title:'Debug script',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">bash</span> <span class="ex-flag">-x</span> <span class="ex-arg">script.sh</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">bash</span> <span class="ex-flag">-n</span> <span class="ex-arg">script.sh</span>  <span class="ex-out"># syntax check</span>`}],
+    tags:['sh','zsh','source'] },
+
+  // SSH
+  { name:'ssh-keygen', cat:'ssh', desc:'Generate SSH key pairs for authentication.',
+    syntax:'ssh-keygen [options]',
+    options:[{f:'-t type',d:'Key type: rsa, ed25519, ecdsa'},{f:'-b bits',d:'Key bits (e.g. 4096)'},{f:'-f file',d:'Output file'},{f:'-C comment',d:'Key comment'}],
+    examples:[{title:'Generate key',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ssh-keygen</span> <span class="ex-flag">-t ed25519 -C "email@example.com"</span>`}],
+    tags:['ssh-copy-id','ssh','authorized_keys'] },
+  { name:'ssh-copy-id', cat:'ssh', desc:'Copy public key to remote host for passwordless login.',
+    syntax:'ssh-copy-id [-i key] user@host',
+    options:[{f:'-i file',d:'Specific identity file to copy'},{f:'-p port',d:'SSH port'}],
+    examples:[{title:'Copy key',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">ssh-copy-id</span> <span class="ex-flag">-i ~/.ssh/id_ed25519.pub</span> <span class="ex-arg">user@server</span>`}],
+    tags:['ssh-keygen','ssh'] },
+  { name:'sftp',    cat:'ssh',   desc:'Secure file transfer protocol — interactive SSH file transfer.',
+    syntax:'sftp [options] user@host',
+    options:[{f:'-P port',d:'Port number'},{f:'-i key',d:'Identity file'},{f:'-b file',d:'Batch file'}],
+    examples:[{title:'Connect & transfer',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">sftp</span> <span class="ex-arg">user@server</span>\n<span class="ex-out">sftp> get remote_file local_file\nsftp> put local_file remote_file</span>`}],
+    tags:['scp','rsync','ssh'] },
+  { name:'ssh-agent', cat:'ssh', desc:'Authentication agent — hold private keys in memory.',
+    syntax:'eval $(ssh-agent)',
+    options:[],
+    examples:[{title:'Start agent',code:`<span class="ex-prompt">$</span> <span class="ex-arg">eval $(ssh-agent)</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">ssh-add</span> <span class="ex-arg">~/.ssh/id_ed25519</span>`}],
+    tags:['ssh-add','ssh','keychain'] },
+
+  // Misc
+  { name:'man',     cat:'misc',  desc:'Display manual pages for commands.',
+    syntax:'man [section] command',
+    options:[{f:'-k keyword',d:'Search by keyword (apropos)'},{f:'-f cmd',d:'Whatis description'},{f:'-a',d:'Display all sections'}],
+    examples:[{title:'Read manual',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">man</span> <span class="ex-arg">ls</span>\n<span class="ex-prompt">$</span> <span class="ex-cmd">man</span> <span class="ex-arg">5 passwd</span>  <span class="ex-out"># file format section</span>`}],
+    tags:['info','help','tldr'] },
+  { name:'help',    cat:'misc',  desc:'Display help for bash built-in commands.',
+    syntax:'help [command]', options:[],
+    examples:[{title:'Shell builtin help',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">help</span> <span class="ex-arg">for</span>`}],
+    tags:['man','info'] },
+  { name:'type',    cat:'misc',  desc:'Describe how a name would be interpreted by the shell.',
+    syntax:'type [-a] name', options:[{f:'-a',d:'Show all locations'}],
+    examples:[{title:'Check command type',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">type</span> <span class="ex-arg">cd</span>\n<span class="ex-out">cd is a shell builtin\n$ type ls\nls is /bin/ls</span>`}],
+    tags:['which','whereis'] },
+  { name:'cmp',     cat:'misc',  desc:'Compare two files byte by byte.',
+    syntax:'cmp [options] file1 file2',
+    options:[{f:'-l',d:'Print byte number and values of differing bytes'},{f:'-s',d:'Silent — exit status only'}],
+    examples:[{title:'Compare files',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">cmp</span> <span class="ex-arg">file1 file2</span>`}],
+    tags:['diff','md5sum'] },
+  { name:'md5sum',  cat:'misc',  desc:'Compute and check MD5 message digest.',
+    syntax:'md5sum [options] files',
+    options:[{f:'-c file',d:'Check checksums from file'}],
+    examples:[{title:'Checksum file',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">md5sum</span> <span class="ex-arg">file.iso</span>\n<span class="ex-out">d41d8cd98f00b204... file.iso</span>`}],
+    tags:['sha256sum','sha1sum','cmp'] },
+  { name:'sha256sum', cat:'misc', desc:'Compute and check SHA256 checksums.',
+    syntax:'sha256sum [options] files',
+    options:[{f:'-c file',d:'Check checksums from file'},{f:'-b',d:'Read in binary mode'}],
+    examples:[{title:'Verify download',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">sha256sum</span> <span class="ex-flag">-c</span> <span class="ex-arg">checksums.txt</span>`}],
+    tags:['md5sum','sha1sum'] },
+  { name:'hexdump', cat:'misc',  desc:'Display file contents in hexadecimal.',
+    syntax:'hexdump [options] file',
+    options:[{f:'-C',d:'Canonical hex+ASCII display'},{f:'-n n',d:'Interpret only n input bytes'},{f:'-s offset',d:'Skip offset bytes'}],
+    examples:[{title:'View binary',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">hexdump</span> <span class="ex-flag">-C</span> <span class="ex-arg">file.bin</span> | <span class="ex-cmd">head</span>`}],
+    tags:['xxd','od','strings'] },
+  { name:'watch',   cat:'misc',  desc:'Execute a program periodically and show output.',
+    syntax:'watch [options] command',
+    options:[{f:'-n n',d:'Update interval in seconds (default 2)'},{f:'-d',d:'Highlight differences'},{f:'-t',d:'Turn off header'}],
+    examples:[{title:'Monitor disk',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">watch</span> <span class="ex-flag">-n1 -d</span> <span class="ex-arg">df -h</span>`}],
+    tags:['top','cron'] },
+  { name:'bc',      cat:'misc',  desc:'Arbitrary precision calculator language.',
+    syntax:'bc [options]',
+    options:[{f:'-l',d:'Load math library (pi, scale, etc.)'},{f:'-q',d:'Quiet — suppress welcome message'}],
+    examples:[{title:'Calculate',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">echo</span> <span class="ex-arg">"scale=4; sqrt(2)"</span> | <span class="ex-cmd">bc</span> <span class="ex-flag">-l</span>\n<span class="ex-out">1.4142</span>`}],
+    tags:['python','expr','awk'] },
+  { name:'nl',      cat:'misc',  desc:'Number lines of a file.',
+    syntax:'nl [options] file',
+    options:[{f:'-b style',d:'Number lines of selected body: a=all, n=none, t=non-empty'},{f:'-n format',d:'Line number format: ln, rn, rz'}],
+    examples:[{title:'Number lines',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">nl</span> <span class="ex-arg">file.txt</span>`}],
+    tags:['cat','wc'] },
+  { name:'column',  cat:'misc',  desc:'Columnate lists — format data in columns.',
+    syntax:'column [options] [file]',
+    options:[{f:'-t',d:'Table mode — determine columns from input'},{f:'-s sep',d:'Column separator'},{f:'-N names',d:'Column names (header)'}],
+    examples:[{title:'Format table',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">column</span> <span class="ex-flag">-t -s,</span> <span class="ex-arg">data.csv</span>`}],
+    tags:['awk','pr','fmt'] },
+  { name:'yes',     cat:'misc',  desc:'Output a string repeatedly until killed.',
+    syntax:'yes [string]',
+    options:[],
+    examples:[{title:'Auto-confirm',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">yes</span> | <span class="ex-cmd">apt</span> <span class="ex-arg">upgrade</span>  <span class="ex-out"># ⚠ auto-yes</span>`}],
+    tags:['expect','timeout'] },
+  { name:'timeout', cat:'misc',  desc:'Run a command with a time limit.',
+    syntax:'timeout [options] duration command',
+    options:[{f:'-s sig',d:'Signal to send on timeout'},{f:'-k kill',d:'Hard kill after this much more time'}],
+    examples:[{title:'Limit runtime',code:`<span class="ex-prompt">$</span> <span class="ex-cmd">timeout</span> <span class="ex-arg">30s ./long-script.sh</span>`}],
+    tags:['time','kill','watch'] },
+];
+
+let activeCategory = 'all';
+let searchQuery = '';
+let currentCmd = null;
+
+function catColor(id) {
+  return (CATS.find(c => c.id === id) || {}).color || '#58a6ff';
+}
+
+function renderCategories() {
+  const el = document.getElementById('categories');
+  el.innerHTML = CATS.map(c => `
+    <button class="cat-btn ${activeCategory === c.id ? 'active' : ''}"
+      style="--cat-color: ${c.color}"
+      onclick="setCategory('${c.id}')">
+      <span class="cat-dot"></span>${c.label}
+    </button>`).join('');
+}
+
+function getFiltered() {
+  return COMMANDS.filter(cmd => {
+    const matchCat = activeCategory === 'all' || cmd.cat === activeCategory;
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q || cmd.name.includes(q) || cmd.desc.toLowerCase().includes(q)
+      || (cmd.tags || []).some(t => t.includes(q));
+    return matchCat && matchSearch;
+  });
+}
+
+function renderContent() {
+  const filtered = getFiltered();
+  const el = document.getElementById('content');
+  document.getElementById('result-count').textContent = filtered.length;
+
+  if (!filtered.length) {
+    el.innerHTML = `<div class="no-results">
+      <span class="no-results-icon">¬</span>
+      <div>No commands found for "<strong style="color:var(--term-text)">${searchQuery}</strong>"</div>
+      <div style="margin-top:6px;font-size:12px">Try a different search term</div>
+    </div>`;
+    return;
+  }
+
+  const groups = {};
+  filtered.forEach(c => {
+    if (!groups[c.cat]) groups[c.cat] = [];
+    groups[c.cat].push(c);
+  });
+
+  let html = '';
+  if (activeCategory === 'all') {
+    Object.keys(groups).forEach(cat => {
+      const catObj = CATS.find(c => c.id === cat);
+      html += `<div class="section-label">${catObj ? catObj.label : cat} <span style="opacity:.5">(${groups[cat].length})</span></div>`;
+      html += '<div class="commands-grid">' + groups[cat].map(cmd => renderCard(cmd)).join('') + '</div>';
+    });
+  } else {
+    html = '<div class="commands-grid">' + filtered.map(cmd => renderCard(cmd)).join('') + '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderCard(cmd) {
+  const color = catColor(cmd.cat);
+  return `<div class="cmd-card" style="--cat-color:${color}" onclick="openModal('${cmd.name}')">
+    <div class="cmd-top">
+      <span class="cmd-name">${cmd.name}</span>
+      <span class="cmd-badge">${(CATS.find(c=>c.id===cmd.cat)||{}).label||cmd.cat}</span>
+    </div>
+    <div class="cmd-desc">${cmd.desc.split('—')[0].trim()}</div>
+    <div class="cmd-syntax">${cmd.syntax}</div>
+  </div>`;
+}
+
+function openModal(name) {
+  const cmd = COMMANDS.find(c => c.name === name);
+  if (!cmd) return;
+  currentCmd = cmd;
+  const color = catColor(cmd.cat);
+  const catLabel = (CATS.find(c=>c.id===cmd.cat)||{}).label||cmd.cat;
+
+  let optHtml = '';
+  if (cmd.options && cmd.options.length) {
+    optHtml = `<div class="modal-section-title">Options & flags</div>
+      <div>${cmd.options.map(o => `
+        <div class="option-row">
+          <span class="option-flag">${o.f}</span>
+          <span class="option-desc">${o.d}</span>
+        </div>`).join('')}</div>`;
+  }
+
+  let exHtml = '';
+  if (cmd.examples && cmd.examples.length) {
+    exHtml = `<div class="modal-section-title">Examples</div>` +
+      cmd.examples.map(ex => `
+        <div class="example-block">
+          <div class="example-topbar">bash — ${ex.title}</div>
+          <div class="example-code">${ex.code}</div>
+        </div>
+        <button class="copy-btn" onclick="copySyntax('${cmd.name}')">Copy syntax</button>
+      `).join('');
+  }
+
+  let tagsHtml = '';
+  if (cmd.tags && cmd.tags.length) {
+    tagsHtml = `<div class="modal-section-title">Related commands</div>
+      <div class="related-tags">${cmd.tags.map(t => {
+        const found = COMMANDS.find(c=>c.name===t);
+        return `<span class="tag" onclick="${found?`openModal('${t}')`:`void(0)`}">${t}</span>`;
+      }).join('')}</div>`;
+  }
+
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-header">
+      <div class="modal-icon" style="background:${color}20; color:${color}; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px">${cmd.name.slice(0,4)}</div>
+      <div>
+        <div class="modal-cmd" style="color:${color}">${cmd.name}</div>
+        <div class="modal-cat">${catLabel}</div>
+      </div>
+      <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-title">Description</div>
+      <div class="modal-desc">${cmd.desc}</div>
+      <div class="modal-section-title" style="margin-top:14px">Syntax</div>
+      <div class="modal-syntax-block">${cmd.syntax}</div>
+      ${optHtml}${exHtml}${tagsHtml}
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target.id === 'modal-overlay') closeModalBtn();
+}
+
+function closeModalBtn() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function copySyntax(name) {
+  const cmd = COMMANDS.find(c=>c.name===name);
+  if (cmd && navigator.clipboard) {
+    navigator.clipboard.writeText(cmd.syntax);
+  }
+}
+
+function setCategory(id) {
+  activeCategory = id;
+  renderCategories();
+  renderContent();
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  if (searchQuery) activeCategory = 'all';
+  renderCategories();
+  renderContent();
+});
+
+renderCategories();
+renderContent();
+</script>
