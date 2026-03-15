@@ -1,0 +1,2964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Linux Network Commands Reference — interactive guide to diagnostics, config, monitoring, transfer, security, DNS, firewall and wireless commands.">
+<title>NetRef — Linux Network &amp; System Commands</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #080c14;
+  --bg2:      #0c1220;
+  --bg3:      #101828;
+  --card:     #111a2c;
+  --card-hi:  #162035;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #b8cce4;
+  --text2:    #6b8aaa;
+  --text3:    #3d5472;
+  --white:    #e8f0fa;
+  --green:    #00e88f;
+  --cyan:     #22d3ee;
+  --amber:    #f59e0b;
+  --purple:   #a78bfa;
+  --red:      #f87171;
+  --orange:   #fb923c;
+  --pink:     #f472b6;
+  --blue:     #60a5fa;
+  --sidebar-w: 220px;
+  --list-w:    360px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Animated grid background ─────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(34,211,238,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,211,238,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 70% 20%, rgba(34,211,238,0.04) 0%, transparent 60%),
+              radial-gradient(ellipse 40% 60% at 20% 80%, rgba(0,232,143,0.03) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Top bar ───────────────────────────────────────────────────── */
+.topbar {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,12,20,0.9);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-mark {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--green);
+  padding: 4px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+}
+
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+
+.logo-sep {
+  color: var(--text3);
+  margin: 0 2px;
+}
+
+.logo-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+
+.topbar-search {
+  flex: 1;
+  max-width: 420px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 12px;
+  transition: border-color 0.2s;
+}
+
+.topbar-search:focus-within {
+  border-color: rgba(34,211,238,0.4);
+  box-shadow: 0 0 0 3px rgba(34,211,238,0.06);
+}
+
+.search-prompt {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--white);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 9px 0;
+  caret-color: var(--green);
+}
+
+.search-input::placeholder { color: var(--text3); }
+
+.search-kbd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+
+.topbar-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--green);
+  background: rgba(0,232,143,0.08);
+  border: 1px solid rgba(0,232,143,0.2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ── Main layout ───────────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Sidebar toggle button ─────────────────────────────────────── */
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.sidebar-toggle:hover {
+  background: var(--card);
+  border-color: var(--border2);
+  color: var(--white);
+}
+
+.sidebar-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: opacity 0.2s;
+}
+
+/* Sidebar ── Collapsed state ──────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: rgba(11,17,32,0.8);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  transition: width 0.25s cubic-bezier(0.4,0,0.2,1),
+              opacity 0.2s ease,
+              border-color 0.25s ease;
+}
+
+.sidebar.collapsed {
+  width: 0;
+  opacity: 0;
+  border-right-color: transparent;
+  pointer-events: none;
+}
+
+/* Keep inner content from wrapping during collapse */
+.sidebar-inner {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.sidebar::-webkit-scrollbar { display: none; }
+
+.sidebar-section {
+  padding: 20px 12px 8px;
+}
+
+.sidebar-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0 8px;
+  margin-bottom: 6px;
+}
+
+.cat-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  position: relative;
+}
+
+.cat-item:hover { background: var(--card); color: var(--text); }
+
+.cat-item.active {
+  background: var(--card);
+  color: var(--white);
+}
+
+.cat-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 18px;
+  background: var(--item-color, var(--cyan));
+  border-radius: 0 2px 2px 0;
+}
+
+.cat-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--item-color, var(--cyan));
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.cat-item:not(.active) .cat-dot { opacity: 0.4; }
+
+.cat-count {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 12px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 1.7;
+}
+
+/* ── Command list ──────────────────────────────────────────────── */
+.cmd-list-panel {
+  width: var(--list-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.list-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-header-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.2px;
+}
+
+.list-header-count {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.cmd-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.cmd-list::-webkit-scrollbar { width: 4px; }
+.cmd-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.group-header {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 10px 8px 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.group-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.cmd-item {
+  padding: 11px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border: 1px solid transparent;
+  margin-bottom: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cmd-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--item-accent, var(--cyan));
+  opacity: 0;
+  transition: opacity 0.12s;
+  border-radius: 2px 0 0 2px;
+}
+
+.cmd-item:hover { background: var(--card); }
+.cmd-item:hover::before { opacity: 0.6; }
+
+.cmd-item.active {
+  background: var(--card-hi);
+  border-color: var(--border2);
+}
+.cmd-item.active::before { opacity: 1; }
+
+.cmd-item-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--item-accent, var(--cyan));
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.cmd-item-badge {
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.cmd-item-desc {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Detail panel ──────────────────────────────────────────────── */
+.detail-panel {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.detail-panel::-webkit-scrollbar { width: 4px; }
+.detail-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.detail-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 14px;
+  color: var(--text3);
+  user-select: none;
+}
+
+.placeholder-glyph {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 48px;
+  color: var(--border2);
+  line-height: 1;
+}
+
+.placeholder-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  text-align: center;
+  line-height: 1.8;
+}
+
+.detail-content {
+  animation: fadeSlide 0.2s ease-out;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Detail header */
+.detail-header {
+  padding: 28px 32px 22px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(8,12,20,0.95);
+  backdrop-filter: blur(16px);
+  z-index: 5;
+}
+
+.detail-header-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.detail-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--icon-color);
+  background: var(--icon-bg);
+  border: 1px solid var(--icon-border);
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.detail-cmd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--cmd-color);
+}
+
+.detail-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--cat-color);
+  background: var(--cat-bg);
+  border: 1px solid var(--cat-border);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-top: 6px;
+}
+
+.detail-desc-short {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text2);
+  margin-top: 10px;
+}
+
+/* Detail body */
+.detail-body {
+  padding: 24px 32px 48px;
+}
+
+.section {
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.syntax-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  overflow: hidden;
+}
+
+.syntax-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--amber);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+  background: rgba(0,232,143,0.08);
+  border: 1px solid rgba(0,232,143,0.25);
+  color: var(--green);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.copy-btn:hover { background: rgba(0,232,143,0.16); }
+.copy-btn:active { transform: scale(0.97); }
+
+/* Flags table */
+.flags-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.flags-table tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.flags-table tr:last-child { border-bottom: none; }
+.flags-table tr:hover { background: var(--card); }
+
+.flag-key {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--orange);
+  padding: 9px 16px 9px 0;
+  vertical-align: top;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.flag-val {
+  font-size: 13px;
+  color: var(--text);
+  padding: 9px 0;
+  line-height: 1.5;
+}
+
+/* Examples */
+.example {
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.example-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 14px;
+}
+
+.example-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.example-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+.example-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+}
+
+.example-code {
+  padding: 14px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  line-height: 1.9;
+  white-space: pre;
+  overflow-x: auto;
+  background: #060a12;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.example-code::-webkit-scrollbar { height: 4px; }
+.example-code::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.ex-prompt { color: var(--green); }
+.ex-cmd    { color: var(--cyan); }
+.ex-flag   { color: var(--orange); }
+.ex-arg    { color: var(--purple); }
+.ex-out    { color: var(--text3); }
+
+/* Related tags */
+.related-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.rel-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 5px 12px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.rel-tag:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(34,211,238,0.06);
+}
+
+/* ── Mobile overlay ────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  :root { --list-w: 280px; }
+}
+
+@media (max-width: 640px) {
+  .cmd-list-panel {
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 100%;
+    z-index: 20;
+    background: var(--bg);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  .cmd-list-panel.open { transform: translateX(0); }
+  .detail-header { padding: 20px 20px 16px; }
+  .detail-body { padding: 20px 20px 48px; }
+  .detail-cmd { font-size: 24px; }
+  .mobile-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 12px;
+  }
+  .topbar-search { max-width: none; }
+  .logo-sub { display: none; }
+}
+
+/* ── No-results ────────────────────────────────────────────────── */
+.no-results {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text3);
+}
+
+.no-results-glyph {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 32px;
+  color: var(--border2);
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* ── Stagger entry animation ───────────────────────────────────── */
+.cmd-item {
+  animation: itemIn 0.3s ease-out both;
+}
+
+@keyframes itemIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<header class="topbar">
+  <!-- Sidebar toggle button -->
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle categories (Ctrl+B)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <rect x="1.5" y="1.5" width="13" height="13" rx="2"/>
+      <line x1="5.5" y1="1.5" x2="5.5" y2="14.5"/>
+    </svg>
+  </button>
+
+  <a class="logo" href="#">
+    <span class="logo-mark">NET</span>
+    <span class="logo-name">NetRef<span class="logo-sep"> / </span></span>
+    <span class="logo-sub">LINUX · NET & SYSTEM</span>
+  </a>
+
+  <div class="topbar-search">
+    <span class="search-prompt">$&gt;</span>
+    <input class="search-input" id="search" type="search"
+           placeholder="Search commands, flags, descriptions…"
+           autocomplete="off" autocorrect="off" spellcheck="false" />
+    <span class="search-kbd">Ctrl K</span>
+  </div>
+
+  <div class="topbar-count" id="count">35 cmds</div>
+</header>
+
+<!-- App -->
+<div class="app">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Network</div>
+      <div id="cat-nav-net"></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">System</div>
+      <div id="cat-nav-sys"></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-footer">
+      NetRef v2.0<br>
+      Network + System cmds<br>
+      Ctrl+K: search · ↑↓: nav<br>
+      Ctrl+B: toggle sidebar
+    </div>
+    </div>
+  </nav>
+
+  <!-- Command list -->
+  <div class="cmd-list-panel" id="listPanel">
+    <div class="list-header">
+      <div class="list-header-title" id="listTitle">All Commands</div>
+      <div class="list-header-count" id="listCount"></div>
+    </div>
+    <div class="cmd-list" id="cmdList"></div>
+  </div>
+
+  <!-- Detail -->
+  <main class="detail-panel" id="detailPanel">
+    <div class="detail-placeholder" id="placeholder">
+      <div class="placeholder-glyph">$_</div>
+      <div class="placeholder-text">
+        Select a command to view details<br>
+        <span style="color:var(--text3);font-size:10px">or press Ctrl+K to search</span>
+      </div>
+    </div>
+    <div class="detail-content" id="detailContent" style="display:none"></div>
+  </main>
+
+</div>
+
+<script>
+/* ── Data ─────────────────────────────────────────────────────── */
+const CATS = [
+  { id:'all',      label:'All Commands',  color:'#22d3ee' },
+  // ── Network ──
+  { id:'diag',     label:'Diagnostics',   color:'#00e88f' },
+  { id:'config',   label:'Net Config',    color:'#a78bfa' },
+  { id:'monitor',  label:'Monitor',       color:'#f59e0b' },
+  { id:'transfer', label:'Transfer',      color:'#fb923c' },
+  { id:'security', label:'Security',      color:'#f87171' },
+  { id:'dns',      label:'DNS',           color:'#f472b6' },
+  { id:'firewall', label:'Firewall',      color:'#60a5fa' },
+  { id:'wireless', label:'Wireless',      color:'#00e88f' },
+  // ── System ──
+  { id:'nav',      label:'Navigation',    color:'#34d399' },
+  { id:'files',    label:'Files',         color:'#38bdf8' },
+  { id:'proc',     label:'Processes',     color:'#e879f9' },
+  { id:'sysinfo',  label:'System Info',   color:'#facc15' },
+  { id:'perms',    label:'Permissions',   color:'#fb923c' },
+  { id:'text',     label:'Text & Search', color:'#a3e635' },
+  { id:'pkg',      label:'Packages',      color:'#22d3ee' },
+  { id:'services', label:'Services',      color:'#f87171' },
+  { id:'disk',     label:'Disk',          color:'#c084fc' },
+  { id:'shell',    label:'Shell',         color:'#67e8f9' },
+];
+
+const CMDS = [
+  // ── Diagnostics ───────────────────────────────────────────────
+  { name:'ping', cat:'diag',
+    desc:'Send ICMP echo requests to test host reachability and measure round-trip latency.',
+    syntax:'ping [options] destination',
+    flags:[
+      {f:'-c N',     d:'Stop after N packets sent'},
+      {f:'-i N',     d:'Interval in seconds between packets (default 1)'},
+      {f:'-t N',     d:'Set the IP Time-To-Live value'},
+      {f:'-s N',     d:'Packet payload size in bytes (default 56)'},
+      {f:'-W N',     d:'Timeout in seconds waiting for each reply'},
+      {f:'-q',       d:'Quiet — only print summary at end'},
+      {f:'-4 / -6',  d:'Force IPv4 or IPv6'},
+      {f:'-f',       d:'Flood ping — send as fast as possible (root)'},
+    ],
+    examples:[
+      {t:'Basic connectivity check',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ping</span> <span class="ex-flag">-c 4</span> <span class="ex-arg">google.com</span>
+<span class="ex-out">PING google.com (142.250.185.78) 56 bytes of data.
+64 bytes from 142.250.185.78: icmp_seq=1 ttl=117 time=12.3 ms
+64 bytes from 142.250.185.78: icmp_seq=2 ttl=117 time=11.8 ms
+
+--- google.com ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss
+rtt min/avg/max = 11.8/12.0/12.3 ms</span>`},
+      {t:'Custom packet size and interval',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ping</span> <span class="ex-flag">-c 3 -s 1400 -i 0.5</span> <span class="ex-arg">8.8.8.8</span>`},
+    ],
+    related:['traceroute','mtr','nmap'] },
+
+  { name:'traceroute', cat:'diag',
+    desc:'Trace the network path to a host, displaying each hop, its IP, and round-trip latency.',
+    syntax:'traceroute [options] host',
+    flags:[
+      {f:'-n',   d:'Skip reverse DNS resolution (much faster)'},
+      {f:'-m N', d:'Maximum hops before giving up (default 30)'},
+      {f:'-w N', d:'Timeout in seconds for each probe'},
+      {f:'-q N', d:'Number of probes per hop (default 3)'},
+      {f:'-I',   d:'Use ICMP ECHO instead of UDP datagrams'},
+      {f:'-T',   d:'Use TCP SYN packets (bypass firewalls)'},
+      {f:'-p N', d:'Set destination port for UDP mode'},
+    ],
+    examples:[
+      {t:'Trace with no DNS',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">traceroute</span> <span class="ex-flag">-n</span> <span class="ex-arg">8.8.8.8</span>
+<span class="ex-out">traceroute to 8.8.8.8, 30 hops max
+ 1  192.168.1.1    1.2 ms   1.0 ms   1.1 ms
+ 2  10.10.0.1      5.4 ms   5.1 ms   5.6 ms
+ 3  72.14.215.165  9.1 ms  11.2 ms   9.3 ms
+ 4  142.251.x.x   11.9 ms  12.0 ms  11.7 ms</span>`},
+    ],
+    related:['mtr','ping'] },
+
+  { name:'mtr', cat:'diag',
+    desc:'Real-time network path analyser that combines ping and traceroute into a continuously updating interactive display.',
+    syntax:'mtr [options] host',
+    flags:[
+      {f:'--report',     d:'Run in report mode (non-interactive, prints once)'},
+      {f:'-c N',         d:'Number of pings per hop before exiting'},
+      {f:'-n',           d:'Disable DNS hostname resolution'},
+      {f:'--tcp',        d:'Use TCP SYN packets instead of ICMP'},
+      {f:'--port N',     d:'Target TCP/UDP port'},
+      {f:'-r -w',        d:'Generate a wide text report'},
+      {f:'--json',       d:'Output results as JSON'},
+    ],
+    examples:[
+      {t:'Live interactive mode',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">mtr</span> <span class="ex-arg">google.com</span>         <span class="ex-out"># interactive TUI, Ctrl+C to exit</span>`},
+      {t:'Generate a 10-ping report',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">mtr</span> <span class="ex-flag">--report -c 10 -n</span> <span class="ex-arg">1.1.1.1</span>`},
+    ],
+    related:['traceroute','ping'] },
+
+  { name:'ss', cat:'diag',
+    desc:'Fast socket statistics utility — the modern, richer replacement for netstat with powerful filtering.',
+    syntax:'ss [options] [filter]',
+    flags:[
+      {f:'-t',      d:'Show TCP sockets'},
+      {f:'-u',      d:'Show UDP sockets'},
+      {f:'-l',      d:'Show listening sockets only'},
+      {f:'-n',      d:'Numeric addresses and ports (no DNS)'},
+      {f:'-p',      d:'Show owning process name and PID'},
+      {f:'-s',      d:'Summary statistics per protocol'},
+      {f:'-4 / -6', d:'IPv4 or IPv6 only'},
+      {f:'-e',      d:'Extended socket info'},
+    ],
+    examples:[
+      {t:'All listening TCP sockets with PID',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ss</span> <span class="ex-flag">-tlnp</span>
+<span class="ex-out">State  Recv-Q  Send-Q  Local Address:Port  PID/Program
+LISTEN 0       128     0.0.0.0:22         1234/sshd
+LISTEN 0       5       127.0.0.1:5432     5678/postgres</span>`},
+      {t:'Filter by destination port',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ss</span> <span class="ex-flag">-tnp</span> <span class="ex-arg">dst :443</span>`},
+    ],
+    related:['netstat','lsof','nmap'] },
+
+  { name:'netstat', cat:'diag',
+    desc:'Display network connections, routing tables, interface statistics and protocol info. Use ss on modern systems.',
+    syntax:'netstat [options]',
+    flags:[
+      {f:'-t', d:'TCP connections'},
+      {f:'-u', d:'UDP connections'},
+      {f:'-l', d:'Listening sockets only'},
+      {f:'-n', d:'Numeric addresses, skip DNS'},
+      {f:'-p', d:'Show PID and program name'},
+      {f:'-r', d:'Kernel routing table'},
+      {f:'-s', d:'Per-protocol statistics'},
+      {f:'-i', d:'Interface table with packet counts'},
+    ],
+    examples:[
+      {t:'Active listeners',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">netstat</span> <span class="ex-flag">-tlnp</span>
+<span class="ex-out">Proto  Recv-Q  Send-Q  Local Address    PID/Program
+tcp         0       0   0.0.0.0:22       1234/sshd
+tcp         0       0   127.0.0.1:5432   5678/postgres</span>`},
+    ],
+    related:['ss','lsof'] },
+
+  { name:'tcpdump', cat:'diag',
+    desc:'Capture and analyse raw network packets on any interface. Requires root or CAP_NET_RAW capability.',
+    syntax:'tcpdump [options] [BPF filter]',
+    flags:[
+      {f:'-i iface',  d:'Interface to capture on; -i any captures all'},
+      {f:'-n',        d:'No DNS or port name resolution'},
+      {f:'-v / -vv',  d:'Verbose — more packet detail'},
+      {f:'-w file',   d:'Write raw packets to a pcap file'},
+      {f:'-r file',   d:'Read and replay a pcap file'},
+      {f:'-c N',      d:'Capture exactly N packets then exit'},
+      {f:'-A',        d:'Print packet payload as ASCII'},
+      {f:'-X',        d:'Print payload as hex and ASCII'},
+    ],
+    examples:[
+      {t:'Capture HTTP traffic',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">tcpdump</span> <span class="ex-flag">-i eth0 -n</span> <span class="ex-arg">port 80</span>`},
+      {t:'Write to file for Wireshark',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">tcpdump</span> <span class="ex-flag">-i any -w</span> <span class="ex-arg">capture.pcap</span> <span class="ex-out"># Ctrl+C to stop</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">tcpdump</span> <span class="ex-flag">-r</span> <span class="ex-arg">capture.pcap</span> <span class="ex-out">  # read it back</span>`},
+    ],
+    related:['wireshark','tshark','ss'] },
+
+  // ── Config ────────────────────────────────────────────────────
+  { name:'ip', cat:'config',
+    desc:'Primary tool for managing interfaces, addresses, routes, tunnels and neighbours (iproute2 suite). Replaces ifconfig/route.',
+    syntax:'ip [options] OBJECT COMMAND',
+    flags:[
+      {f:'addr show',          d:'Show all IP addresses on all interfaces'},
+      {f:'addr add X/M dev Y', d:'Add IP address to interface'},
+      {f:'addr del X/M dev Y', d:'Remove IP address from interface'},
+      {f:'link set dev X up',  d:'Bring interface up'},
+      {f:'link set dev X down',d:'Bring interface down'},
+      {f:'route show',         d:'Show the kernel routing table'},
+      {f:'route add X via Y',  d:'Add a static route'},
+      {f:'neigh show',         d:'Show ARP/NDP neighbour table'},
+    ],
+    examples:[
+      {t:'Show all addresses',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ip</span> <span class="ex-arg">addr show</span>
+<span class="ex-out">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt;
+    link/ether aa:bb:cc:dd:ee:ff brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.10/24 brd 192.168.1.255 scope global eth0</span>`},
+      {t:'Add a static route',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ip</span> <span class="ex-arg">route add 10.0.0.0/8 via 192.168.1.1 dev eth0</span>`},
+    ],
+    related:['ifconfig','nmcli','route'] },
+
+  { name:'ifconfig', cat:'config',
+    desc:'Configure network interfaces — set IP addresses, bring interfaces up/down. Legacy; prefer ip on modern Linux.',
+    syntax:'ifconfig [interface] [options]',
+    flags:[
+      {f:'ifconfig',           d:'Show all active interfaces'},
+      {f:'-a',                 d:'Show all interfaces including down ones'},
+      {f:'ifconfig eth0',      d:'Show details for eth0'},
+      {f:'ifconfig eth0 up',   d:'Enable interface eth0'},
+      {f:'ifconfig eth0 down', d:'Disable interface eth0'},
+      {f:'X.X.X.X netmask M',  d:'Set IP address and netmask'},
+    ],
+    examples:[
+      {t:'Set IP address',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ifconfig</span> <span class="ex-arg">eth0 192.168.1.50 netmask 255.255.255.0</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">ifconfig</span> <span class="ex-arg">eth0 up</span>`},
+    ],
+    related:['ip','nmcli'] },
+
+  { name:'nmcli', cat:'config',
+    desc:'Command-line interface for NetworkManager — manage connections, devices, Wi-Fi networks and VPN profiles.',
+    syntax:'nmcli [options] OBJECT COMMAND',
+    flags:[
+      {f:'device status',          d:'Show all devices and their state'},
+      {f:'connection show',        d:'List all saved connections'},
+      {f:'connection up NAME',     d:'Activate a connection profile'},
+      {f:'connection down NAME',   d:'Deactivate a connection'},
+      {f:'device wifi list',       d:'List available Wi-Fi networks'},
+      {f:'device wifi connect',    d:'Connect to a Wi-Fi network'},
+      {f:'radio wifi on/off',      d:'Enable or disable the Wi-Fi radio'},
+    ],
+    examples:[
+      {t:'Connect to Wi-Fi',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nmcli</span> <span class="ex-arg">device wifi connect "HomeNet" password "s3cr3t"</span>`},
+      {t:'Show active connections',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nmcli</span> <span class="ex-arg">connection show --active</span>
+<span class="ex-out">NAME    UUID                  TYPE      DEVICE
+eth0    xxxxxxxx-xxxx-...     ethernet  eth0</span>`},
+    ],
+    related:['ip','nmtui','iw'] },
+
+  { name:'route', cat:'config',
+    desc:'Show and manipulate the kernel IP routing table. Legacy command; use ip route on modern systems.',
+    syntax:'route [options]',
+    flags:[
+      {f:'-n',            d:'Numeric output, skip DNS resolution'},
+      {f:'add default gw', d:'Set the default gateway'},
+      {f:'add -net X',    d:'Add a network route'},
+      {f:'del -net X',    d:'Delete a network route'},
+    ],
+    examples:[
+      {t:'Show routing table',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">route</span> <span class="ex-flag">-n</span>
+<span class="ex-out">Destination   Gateway       Genmask        Flags  Iface
+0.0.0.0       192.168.1.1   0.0.0.0        UG     eth0
+192.168.1.0   0.0.0.0       255.255.255.0  U      eth0</span>`},
+    ],
+    related:['ip route','netstat -r'] },
+
+  { name:'hostname', cat:'config',
+    desc:'Display or set the system hostname. Use hostnamectl on systemd-based distributions.',
+    syntax:'hostname [options] [name]',
+    flags:[
+      {f:'-I',  d:'Show all IP addresses assigned to the host'},
+      {f:'-f',  d:'Show fully qualified domain name (FQDN)'},
+      {f:'-d',  d:'Show the DNS domain name only'},
+      {f:'-s',  d:'Show short hostname (strip domain)'},
+    ],
+    examples:[
+      {t:'Show hostname',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">hostname</span>
+<span class="ex-out">myserver</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">hostname</span> <span class="ex-flag">-I</span>
+<span class="ex-out">192.168.1.10 10.0.0.1</span>`},
+      {t:'Set hostname (systemd)',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">hostnamectl</span> <span class="ex-arg">set-hostname newname.example.com</span>`},
+    ],
+    related:['hostnamectl','nmcli'] },
+
+  // ── Monitor ───────────────────────────────────────────────────
+  { name:'iftop', cat:'monitor',
+    desc:'Real-time bandwidth monitor per connection — like top but for network traffic, with a live ncurses display.',
+    syntax:'iftop [options]',
+    flags:[
+      {f:'-i iface', d:'Capture on specific interface'},
+      {f:'-n',       d:'Do not resolve hostnames'},
+      {f:'-P',       d:'Show port numbers in display'},
+      {f:'-B',       d:'Display in bytes per second (default: bits)'},
+      {f:'-N',       d:'Do not resolve port numbers to service names'},
+      {f:'-f filter',d:'BPF filter expression (same syntax as tcpdump)'},
+    ],
+    examples:[
+      {t:'Monitor eth0 with ports',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">iftop</span> <span class="ex-flag">-i eth0 -nP</span>
+<span class="ex-out">192.168.1.10:49152  &lt;=&gt;  142.250.x.x:443   4.50Mb   12.3Mb  28.7Mb</span>`},
+    ],
+    related:['nethogs','nload','bmon'] },
+
+  { name:'nethogs', cat:'monitor',
+    desc:'Monitor bandwidth per process — shows which program is consuming your bandwidth in real time.',
+    syntax:'nethogs [options] [device]',
+    flags:[
+      {f:'-d N',   d:'Delay between refreshes in seconds'},
+      {f:'-t',     d:'Trace mode (non-interactive text output)'},
+      {f:'-c N',   d:'Refresh N times then exit'},
+      {f:'-s',     d:'Sort by sent traffic'},
+      {f:'device', d:'Interface to monitor, e.g. eth0'},
+    ],
+    examples:[
+      {t:'Watch per-process bandwidth',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nethogs</span> <span class="ex-arg">eth0</span>
+<span class="ex-out">PID    Program                  Sent       Received
+1234   /usr/bin/curl             8.50 KB/s  0.10 KB/s
+5678   /usr/bin/firefox         32.10 KB/s  4.20 KB/s</span>`},
+    ],
+    related:['iftop','bmon','nload'] },
+
+  { name:'nload', cat:'monitor',
+    desc:'Real-time network bandwidth monitor displaying separate incoming and outgoing traffic graphs per interface.',
+    syntax:'nload [options] [devices]',
+    flags:[
+      {f:'-i N', d:'Update interval in milliseconds (default 500)'},
+      {f:'-u h', d:'Traffic unit: h=human, b=bit, k=kbit, m=mbit'},
+      {f:'-t N', d:'Time window for averaging in milliseconds'},
+    ],
+    examples:[
+      {t:'Monitor eth0',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nload</span> <span class="ex-arg">eth0</span>  <span class="ex-out"># arrow keys to switch interface</span>`},
+    ],
+    related:['iftop','bmon','nethogs'] },
+
+  { name:'bmon', cat:'monitor',
+    desc:'Bandwidth monitor and rate estimator with a configurable ncurses display and multiple output formats.',
+    syntax:'bmon [options]',
+    flags:[
+      {f:'-p list', d:'Comma-separated list of interfaces to monitor'},
+      {f:'-r N',    d:'Refresh rate in seconds'},
+      {f:'-o fmt',  d:'Output format: curses, ascii, html'},
+    ],
+    examples:[
+      {t:'Monitor specific interfaces',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">bmon</span> <span class="ex-flag">-p</span> <span class="ex-arg">eth0,lo</span>`},
+    ],
+    related:['iftop','nload','nethogs'] },
+
+  { name:'vnstat', cat:'monitor',
+    desc:'Persistent network traffic monitor — logs per-interface stats to a database, survives reboots.',
+    syntax:'vnstat [options] [-i interface]',
+    flags:[
+      {f:'-i iface', d:'Select the interface to query'},
+      {f:'-l',       d:'Live traffic monitor mode'},
+      {f:'-d',       d:'Daily traffic statistics'},
+      {f:'-m',       d:'Monthly traffic statistics'},
+      {f:'-h',       d:'Hourly traffic statistics'},
+      {f:'--json',   d:'Output results as JSON'},
+    ],
+    examples:[
+      {t:'Monthly summary',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">vnstat</span> <span class="ex-flag">-m -i</span> <span class="ex-arg">eth0</span>
+<span class="ex-out"> month    rx         tx         total
+ Feb      3.14 GiB   0.88 GiB   4.02 GiB
+ Mar      4.21 GiB   1.05 GiB   5.26 GiB</span>`},
+    ],
+    related:['iftop','bmon'] },
+
+  // ── Transfer ──────────────────────────────────────────────────
+  { name:'curl', cat:'transfer',
+    desc:'Transfer data to/from servers via HTTP, HTTPS, FTP, SFTP, LDAP and more. The universal data transfer tool.',
+    syntax:'curl [options] URL',
+    flags:[
+      {f:'-X METHOD',   d:'HTTP method: GET, POST, PUT, DELETE, PATCH'},
+      {f:'-H "K: V"',   d:'Add or override a request header'},
+      {f:'-d "data"',   d:'Send POST body (string or @filename)'},
+      {f:'-o file',     d:'Write response body to file'},
+      {f:'-O',          d:'Write output to file named from URL'},
+      {f:'-L',          d:'Follow HTTP redirects automatically'},
+      {f:'-k',          d:'Skip TLS certificate verification'},
+      {f:'-u user:pass',d:'HTTP Basic authentication'},
+      {f:'-v',          d:'Verbose — show request + response headers'},
+      {f:'-s',          d:'Silent — suppress progress and errors'},
+      {f:'--retry N',   d:'Retry up to N times on transient errors'},
+    ],
+    examples:[
+      {t:'POST JSON to an API',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">curl</span> <span class="ex-flag">-X POST</span> \\
+     <span class="ex-flag">-H</span> <span class="ex-arg">"Content-Type: application/json"</span> \\
+     <span class="ex-flag">-H</span> <span class="ex-arg">"Authorization: Bearer \${TOKEN}"</span> \\
+     <span class="ex-flag">-d</span> <span class="ex-arg">'{"name":"alice","role":"admin"}'</span> \\
+     <span class="ex-arg">https://api.example.com/users</span>`},
+      {t:'Download with progress bar',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">curl</span> <span class="ex-flag">-L --progress-bar -o</span> <span class="ex-arg">file.tar.gz https://example.com/f.tar.gz</span>`},
+    ],
+    related:['wget','httpie','rsync'] },
+
+  { name:'wget', cat:'transfer',
+    desc:'Non-interactive network downloader supporting HTTP, HTTPS and FTP, with recursive download and resumption.',
+    syntax:'wget [options] URL',
+    flags:[
+      {f:'-O file',              d:'Save to specific filename'},
+      {f:'-c',                   d:'Continue an interrupted download'},
+      {f:'-r',                   d:'Recursive download (mirror a site)'},
+      {f:'-q',                   d:'Quiet mode — suppress output'},
+      {f:'--no-check-certificate',d:'Skip TLS certificate validation'},
+      {f:'-P dir',               d:'Save all files to directory'},
+      {f:'--limit-rate=RATE',    d:'Throttle download speed (e.g. 500k)'},
+      {f:'-b',                   d:'Go to background after startup'},
+    ],
+    examples:[
+      {t:'Resume a download',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">wget</span> <span class="ex-flag">-c</span> <span class="ex-arg">https://example.com/ubuntu-24.04.iso</span>
+<span class="ex-out">Continuing in background, pid 4321.
+Resuming from 1.20 GB...</span>`},
+    ],
+    related:['curl','rsync'] },
+
+  { name:'scp', cat:'transfer',
+    desc:'Securely copy files between hosts over SSH. Simple and widely available, though lacks progress and resumption.',
+    syntax:'scp [options] source destination',
+    flags:[
+      {f:'-r',     d:'Recursively copy entire directories'},
+      {f:'-P N',   d:'SSH port number (capital P)'},
+      {f:'-i file',d:'Identity (private key) file'},
+      {f:'-C',     d:'Enable SSH compression during transfer'},
+      {f:'-3',     d:'Route transfer through local machine (between two remotes)'},
+      {f:'-v',     d:'Verbose debugging output'},
+    ],
+    examples:[
+      {t:'Copy file to remote server',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">scp</span> <span class="ex-arg">report.pdf user@192.168.1.5:/home/user/docs/</span>`},
+      {t:'Copy directory from remote',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">scp</span> <span class="ex-flag">-r</span> <span class="ex-arg">user@server:/var/log/nginx ./logs/</span>`},
+    ],
+    related:['rsync','sftp','ssh'] },
+
+  { name:'rsync', cat:'transfer',
+    desc:'Fast incremental file sync — transfers only changed bytes, preserves metadata. Ideal for backups and deployments.',
+    syntax:'rsync [options] source destination',
+    flags:[
+      {f:'-a',        d:'Archive mode: recursive + preserve permissions, timestamps, symlinks'},
+      {f:'-v',        d:'Verbose output — show files being transferred'},
+      {f:'-z',        d:'Compress data during transfer'},
+      {f:'-P',        d:'Show per-file progress and enable partial transfers'},
+      {f:'--delete',  d:'Delete files in destination not present in source'},
+      {f:'-e "ssh"',  d:'Use SSH as the transport (default when using user@host)'},
+      {f:'--dry-run', d:'Simulate the operation without making any changes'},
+      {f:'--exclude', d:'Exclude files matching a pattern'},
+    ],
+    examples:[
+      {t:'Deploy to remote server',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">rsync</span> <span class="ex-flag">-avzP</span> <span class="ex-arg">./dist/ user@prod:/var/www/html/</span>`},
+      {t:'Local backup with delete',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">rsync</span> <span class="ex-flag">-a --delete --dry-run</span> <span class="ex-arg">/home/ /mnt/backup/home/</span>
+<span class="ex-out"># remove --dry-run when satisfied</span>`},
+    ],
+    related:['scp','sftp','cp'] },
+
+  { name:'sftp', cat:'transfer',
+    desc:'Interactive secure file transfer over SSH — browse remote filesystems, upload and download files.',
+    syntax:'sftp [options] user@host',
+    flags:[
+      {f:'-P N',    d:'Connect on specified SSH port'},
+      {f:'-i file', d:'Identity (private key) file'},
+      {f:'-b file', d:'Batch mode — read sftp commands from file'},
+      {f:'-r',      d:'Recursively copy directories with get/put'},
+    ],
+    examples:[
+      {t:'Interactive session',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">sftp</span> <span class="ex-arg">deploy@192.168.1.10</span>
+<span class="ex-out">sftp&gt; ls -la
+sftp&gt; cd /var/www
+sftp&gt; get access.log ./
+sftp&gt; put ./index.html /var/www/html/
+sftp&gt; bye</span>`},
+    ],
+    related:['scp','rsync','ssh'] },
+
+  // ── Security ──────────────────────────────────────────────────
+  { name:'ssh', cat:'security',
+    desc:'OpenSSH client — securely connect to remote hosts, run commands, forward ports, and create encrypted tunnels.',
+    syntax:'ssh [options] [user@]host [command]',
+    flags:[
+      {f:'-p N',               d:'Connect on port N'},
+      {f:'-i file',            d:'Use identity (private key) file'},
+      {f:'-L [bind:]port:host:hostport', d:'Local port forwarding'},
+      {f:'-R [bind:]port:host:hostport', d:'Remote port forwarding'},
+      {f:'-D [bind:]port',     d:'Dynamic SOCKS5 proxy on local port'},
+      {f:'-N',                 d:'No remote command — port forward only'},
+      {f:'-A',                 d:'Enable agent forwarding'},
+      {f:'-X',                 d:'Enable X11 forwarding'},
+      {f:'-v',                 d:'Verbose debugging output'},
+      {f:'-o StrictHostKeyChecking=no', d:'Skip host key verification (use carefully)'},
+    ],
+    examples:[
+      {t:'Login with key auth',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ssh</span> <span class="ex-flag">-i ~/.ssh/id_ed25519</span> <span class="ex-arg">deploy@10.0.0.5</span>`},
+      {t:'Local port forward (access remote DB)',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ssh</span> <span class="ex-flag">-N -L 5432:127.0.0.1:5432</span> <span class="ex-arg">user@remotehost</span>
+<span class="ex-out"># psql -h localhost -p 5432 now connects to remote DB</span>`},
+    ],
+    related:['scp','sftp','mosh'] },
+
+  { name:'nmap', cat:'security',
+    desc:'Network mapper — discover hosts, scan open ports, detect service versions and OS fingerprints.',
+    syntax:'nmap [options] target',
+    flags:[
+      {f:'-sS',       d:'TCP SYN (stealth) scan — default for root'},
+      {f:'-sT',       d:'TCP Connect scan — no root required'},
+      {f:'-sU',       d:'UDP scan'},
+      {f:'-p ports',  d:'Port spec: 22,80,443 or 1-1024 or - for all'},
+      {f:'-A',        d:'Aggressive: OS, version, scripts, traceroute'},
+      {f:'-O',        d:'OS detection only'},
+      {f:'-sV',       d:'Service and version detection'},
+      {f:'-Pn',       d:'Skip host discovery (treat all hosts as up)'},
+      {f:'-oN file',  d:'Save normal output to file'},
+      {f:'-oX file',  d:'Save XML output to file'},
+      {f:'--script=X',d:'Run NSE script or category'},
+    ],
+    examples:[
+      {t:'Quick subnet scan',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nmap</span> <span class="ex-flag">-sV --open</span> <span class="ex-arg">192.168.1.0/24</span>`},
+      {t:'Full port scan with OS detection',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nmap</span> <span class="ex-flag">-A -p-</span> <span class="ex-arg">10.0.0.1</span>  <span class="ex-out"># slow, comprehensive</span>`},
+    ],
+    related:['netstat','ss','masscan'] },
+
+  { name:'nc', cat:'security',
+    desc:'Netcat — the TCP/UDP Swiss army knife. Port scanning, banner grabbing, file transfer, and reverse shells.',
+    syntax:'nc [options] host port',
+    flags:[
+      {f:'-l',   d:'Listen mode (server side)'},
+      {f:'-p N', d:'Local source port number'},
+      {f:'-u',   d:'UDP mode (default is TCP)'},
+      {f:'-v',   d:'Verbose — print connections and errors'},
+      {f:'-z',   d:'Zero-I/O scan mode — probe ports, no data sent'},
+      {f:'-w N', d:'Idle timeout in seconds'},
+      {f:'-n',   d:'No DNS resolution'},
+    ],
+    examples:[
+      {t:'Scan a port range',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nc</span> <span class="ex-flag">-zv</span> <span class="ex-arg">example.com 20-25</span>
+<span class="ex-out">nc: connect to example.com port 22 (tcp) succeeded!</span>`},
+      {t:'Listen and capture data',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nc</span> <span class="ex-flag">-lvp 8888</span> <span class="ex-out"># wait for connection
+# from another host:
+$</span> <span class="ex-cmd">nc</span> <span class="ex-arg">server-ip 8888</span> <span class="ex-out">&lt; file.txt</span>`},
+    ],
+    related:['nmap','socat','telnet'] },
+
+  { name:'openssl', cat:'security',
+    desc:'TLS/SSL toolkit — inspect certificates, test connections, generate keys, encrypt files.',
+    syntax:'openssl COMMAND [options]',
+    flags:[
+      {f:'s_client -connect H:P', d:'Open a TLS connection to host:port'},
+      {f:'x509 -in cert -text',   d:'Parse and display certificate details'},
+      {f:'x509 -noout -dates',    d:'Show certificate validity dates only'},
+      {f:'genrsa -out key 4096',  d:'Generate a 4096-bit RSA private key'},
+      {f:'req -new -x509',        d:'Generate a self-signed certificate'},
+      {f:'enc -aes-256-cbc -e',   d:'Encrypt a file with AES-256-CBC'},
+      {f:'s_server',              d:'Launch a simple TLS test server'},
+    ],
+    examples:[
+      {t:'Check certificate expiry',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">openssl</span> <span class="ex-arg">s_client -connect google.com:443 2>/dev/null</span> \\
+  | <span class="ex-cmd">openssl</span> <span class="ex-arg">x509 -noout -dates</span>
+<span class="ex-out">notBefore=Oct  1 00:00:00 2024 GMT
+notAfter=Dec 31 23:59:59 2024 GMT</span>`},
+    ],
+    related:['certbot','curl','ssh'] },
+
+  // ── DNS ───────────────────────────────────────────────────────
+  { name:'dig', cat:'dns',
+    desc:'DNS lookup utility — query name servers for A, AAAA, MX, TXT, CNAME, NS, SOA and other record types.',
+    syntax:'dig [@server] name [type] [options]',
+    flags:[
+      {f:'+short',         d:'Minimal output — just the answer'},
+      {f:'+trace',         d:'Trace the full delegation chain from root'},
+      {f:'+noall +answer', d:'Show only the answer section'},
+      {f:'-x IP',          d:'Reverse DNS (PTR) lookup'},
+      {f:'@8.8.8.8',       d:'Query a specific DNS server'},
+      {f:'-t MX',          d:'Query MX records explicitly'},
+      {f:'+dnssec',        d:'Request DNSSEC records'},
+    ],
+    examples:[
+      {t:'A record lookup',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">dig</span> <span class="ex-flag">+short</span> <span class="ex-arg">example.com A</span>
+<span class="ex-out">93.184.216.34</span>`},
+      {t:'Reverse DNS and MX',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">dig</span> <span class="ex-flag">-x</span> <span class="ex-arg">8.8.8.8</span> <span class="ex-flag">+short</span>
+<span class="ex-out">dns.google.</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">dig</span> <span class="ex-flag">+short</span> <span class="ex-arg">gmail.com MX</span>
+<span class="ex-out">10 alt1.gmail-smtp-in.l.google.com.</span>`},
+    ],
+    related:['nslookup','host','whois','resolvectl'] },
+
+  { name:'nslookup', cat:'dns',
+    desc:'Query DNS servers interactively or for a specific hostname. Simpler than dig, universally available.',
+    syntax:'nslookup [host] [server]',
+    flags:[
+      {f:'-type=MX',  d:'Query mail exchanger records'},
+      {f:'-type=TXT', d:'Query TXT records (SPF, DKIM, etc.)'},
+      {f:'-type=AAAA',d:'Query IPv6 AAAA records'},
+      {f:'-debug',    d:'Show verbose debug output'},
+    ],
+    examples:[
+      {t:'MX and TXT records',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nslookup</span> <span class="ex-flag">-type=MX</span> <span class="ex-arg">gmail.com</span>
+<span class="ex-out">gmail.com  mail exchanger = 10 alt1.gmail-smtp-in.l.google.com.</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">nslookup</span> <span class="ex-flag">-type=TXT</span> <span class="ex-arg">example.com</span>`},
+    ],
+    related:['dig','host','whois'] },
+
+  { name:'host', cat:'dns',
+    desc:'Simple DNS lookup command with concise output — great for quick checks of A, MX, CNAME, and reverse lookups.',
+    syntax:'host [options] name [server]',
+    flags:[
+      {f:'-t TYPE', d:'Query specific record type: A, AAAA, MX, TXT, NS, CNAME'},
+      {f:'-a',      d:'Query ALL record types (equivalent to -t ANY)'},
+      {f:'-v',      d:'Verbose output with TTLs and authority info'},
+      {f:'-4 / -6', d:'Use IPv4 / IPv6 transport to the resolver'},
+    ],
+    examples:[
+      {t:'Quick lookups',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">host</span> <span class="ex-arg">example.com</span>
+<span class="ex-out">example.com has address 93.184.216.34</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">host</span> <span class="ex-flag">-t MX</span> <span class="ex-arg">example.com</span>`},
+    ],
+    related:['dig','nslookup','whois'] },
+
+  { name:'whois', cat:'dns',
+    desc:'Query WHOIS databases for domain registration info, registrar, expiry dates, and IP range ownership.',
+    syntax:'whois [options] query',
+    flags:[
+      {f:'-h server', d:'Use specific WHOIS server'},
+      {f:'-p port',   d:'WHOIS server port (default 43)'},
+    ],
+    examples:[
+      {t:'Domain and IP lookups',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">whois</span> <span class="ex-arg">example.com</span>
+<span class="ex-out">Domain Name: EXAMPLE.COM
+Registrar: IANA
+Creation Date: 1995-08-14
+Registry Expiry: 2025-08-13</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">whois</span> <span class="ex-arg">8.8.8.8</span>   <span class="ex-out"># IP ownership</span>`},
+    ],
+    related:['dig','host','curl'] },
+
+  { name:'resolvectl', cat:'dns',
+    desc:'Resolve hostnames and inspect systemd-resolved DNS config — query cache stats, flush cache, and check per-interface DNS.',
+    syntax:'resolvectl COMMAND [options]',
+    flags:[
+      {f:'status',       d:'Show DNS configuration per network interface'},
+      {f:'query NAME',   d:'Resolve a hostname through systemd-resolved'},
+      {f:'statistics',   d:'Show cache size, hit/miss counters'},
+      {f:'flush-caches', d:'Clear the local DNS cache immediately'},
+      {f:'dns IFACE',    d:'Show DNS servers configured for interface'},
+    ],
+    examples:[
+      {t:'Flush DNS cache',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">resolvectl</span> <span class="ex-arg">flush-caches</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">resolvectl</span> <span class="ex-arg">statistics</span>
+<span class="ex-out">Cache -- Current Cache Size: 0</span>`},
+    ],
+    related:['dig','nmcli'] },
+
+  // ── Firewall ──────────────────────────────────────────────────
+  { name:'firewall-cmd', cat:'firewall',
+    desc:'Command-line tool for firewalld — the default dynamic firewall on Fedora and RHEL, using zones and service definitions.',
+    syntax:'firewall-cmd [options]',
+    flags:[
+      {f:'--state',             d:'Check if firewalld daemon is running'},
+      {f:'--list-all',          d:'List all rules in the default zone'},
+      {f:'--add-service=NAME',  d:'Allow a named service (ssh, http, https…)'},
+      {f:'--remove-service=N',  d:'Block a previously allowed service'},
+      {f:'--add-port=N/PROTO',  d:'Open a specific port (e.g. 8080/tcp)'},
+      {f:'--remove-port=N/P',   d:'Close a specific port'},
+      {f:'--permanent',         d:'Make the change survive reboots'},
+      {f:'--reload',            d:'Apply permanent rules without restart'},
+      {f:'--zone=ZONE',         d:'Target a specific zone (public, internal…)'},
+    ],
+    examples:[
+      {t:'Allow HTTPS permanently',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">firewall-cmd</span> <span class="ex-flag">--permanent --add-service=https</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">firewall-cmd</span> <span class="ex-flag">--permanent --add-service=http</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">firewall-cmd</span> <span class="ex-flag">--reload</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">firewall-cmd</span> <span class="ex-flag">--list-all</span>`},
+      {t:'Open custom app port',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">firewall-cmd</span> <span class="ex-flag">--permanent --add-port=3000/tcp</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">firewall-cmd</span> <span class="ex-flag">--reload</span>`},
+    ],
+    related:['iptables','nftables','ufw'] },
+
+  { name:'iptables', cat:'firewall',
+    desc:'Configure Linux kernel packet filtering rules via the Netfilter framework. Legacy — prefer nftables or firewall-cmd.',
+    syntax:'iptables [-t table] COMMAND CHAIN rule',
+    flags:[
+      {f:'-L -v -n',          d:'List all rules (verbose, numeric addresses)'},
+      {f:'--line-numbers',    d:'Show rule numbers (for deletion)'},
+      {f:'-A CHAIN rule',     d:'Append a rule to a chain'},
+      {f:'-I CHAIN N rule',   d:'Insert rule at position N in chain'},
+      {f:'-D CHAIN N',        d:'Delete rule at position N'},
+      {f:'-F [CHAIN]',        d:'Flush (delete) all rules in chain or all chains'},
+      {f:'-P CHAIN TARGET',   d:'Set default policy: ACCEPT or DROP'},
+      {f:'-t nat',            d:'Operate on the NAT table (PREROUTING, POSTROUTING)'},
+    ],
+    examples:[
+      {t:'Allow SSH and HTTP',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">iptables</span> <span class="ex-flag">-A INPUT -p tcp --dport 22 -j ACCEPT</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">iptables</span> <span class="ex-flag">-A INPUT -p tcp --dport 80 -j ACCEPT</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">iptables</span> <span class="ex-flag">-P INPUT DROP</span>  <span class="ex-out"># default deny</span>`},
+    ],
+    related:['nftables','firewall-cmd','ufw'] },
+
+  { name:'nftables', cat:'firewall',
+    desc:'Modern successor to iptables — cleaner syntax, better performance, atomic rule updates, replaces ip/ip6/arptables.',
+    syntax:'nft [options] COMMAND',
+    flags:[
+      {f:'list ruleset',  d:'Show all current tables, chains, and rules'},
+      {f:'add table X Y', d:'Create table with address family and name'},
+      {f:'add chain',     d:'Add a chain (filter, nat, etc.)'},
+      {f:'add rule',      d:'Add a rule to a chain'},
+      {f:'-f file',       d:'Load rules from a file (e.g. /etc/nftables.conf)'},
+      {f:'flush ruleset', d:'Remove all rules (use with care)'},
+    ],
+    examples:[
+      {t:'Load and list rules',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nft</span> <span class="ex-flag">-f</span> <span class="ex-arg">/etc/nftables.conf</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">nft</span> <span class="ex-arg">list ruleset</span>`},
+    ],
+    related:['iptables','firewall-cmd'] },
+
+  { name:'ufw', cat:'firewall',
+    desc:'Uncomplicated Firewall — a user-friendly iptables frontend common on Ubuntu/Debian. Simple allow/deny syntax.',
+    syntax:'ufw [command] [rule]',
+    flags:[
+      {f:'enable / disable',d:'Turn UFW on or off'},
+      {f:'status verbose',  d:'Show current rules and UFW state'},
+      {f:'allow PORT/PROTO', d:'Allow incoming connections on port'},
+      {f:'deny PORT',       d:'Block incoming connections on port'},
+      {f:'allow from IP',   d:'Whitelist traffic from a source IP'},
+      {f:'delete N',        d:'Delete rule by number (from status numbered)'},
+      {f:'app list',        d:'Show pre-defined application profiles'},
+    ],
+    examples:[
+      {t:'Basic web server rules',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ufw</span> <span class="ex-arg">allow 22/tcp</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">ufw</span> <span class="ex-arg">allow 80/tcp</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">ufw</span> <span class="ex-arg">allow 443/tcp</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">ufw</span> <span class="ex-arg">enable</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">ufw</span> <span class="ex-arg">status verbose</span>`},
+    ],
+    related:['iptables','firewall-cmd'] },
+
+  // ── Wireless ──────────────────────────────────────────────────
+  { name:'iw', cat:'wireless',
+    desc:'Modern nl80211-based wireless configuration tool. Replaces iwconfig and iwlist for modern Wi-Fi chipsets.',
+    syntax:'iw [options] dev|phy|reg COMMAND',
+    flags:[
+      {f:'dev wlan0 scan',         d:'Scan for available Wi-Fi networks'},
+      {f:'dev wlan0 link',         d:'Show current connection state'},
+      {f:'dev wlan0 info',         d:'Show interface capabilities and mode'},
+      {f:'dev wlan0 station dump', d:'List connected stations (AP mode)'},
+      {f:'phy list',               d:'List physical wireless devices and capabilities'},
+      {f:'dev wlan0 set txpower',  d:'Set transmit power'},
+    ],
+    examples:[
+      {t:'Scan and show link',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">iw</span> <span class="ex-arg">dev wlan0 scan</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">-E "SSID|signal"</span>
+<span class="ex-out">        SSID: HomeNetwork
+        signal: -52.00 dBm</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">iw</span> <span class="ex-arg">dev wlan0 link</span>
+<span class="ex-out">Connected to aa:bb:cc:dd:ee:ff
+        SSID: HomeNetwork
+        freq: 5180
+        RX: 4562342 bytes     TX: 1234890 bytes</span>`},
+    ],
+    related:['iwconfig','nmcli','rfkill'] },
+
+  { name:'iwconfig', cat:'wireless',
+    desc:'Configure wireless interfaces — SSID, mode, frequency, bit rate and transmit power. Legacy; prefer iw.',
+    syntax:'iwconfig [interface] [parameter value]',
+    flags:[
+      {f:'essid NAME',     d:'Set the network SSID to connect to'},
+      {f:'mode managed',   d:'Set interface to managed (client) mode'},
+      {f:'mode monitor',   d:'Set interface to monitor mode (packet capture)'},
+      {f:'freq N',         d:'Set operating frequency (e.g. 5.18G)'},
+      {f:'txpower N',      d:'Set transmit power in dBm or mW'},
+      {f:'rate N',         d:'Set bit rate (e.g. 54M), or auto'},
+    ],
+    examples:[
+      {t:'Show wireless details',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">iwconfig</span> <span class="ex-arg">wlan0</span>
+<span class="ex-out">wlan0   IEEE 802.11  ESSID:"HomeNetwork"
+        Mode:Managed  Frequency:5.18 GHz
+        Bit Rate=300 Mb/s  Tx-Power=20 dBm
+        Link Quality=65/70  Signal level=-45 dBm</span>`},
+    ],
+    related:['iw','nmcli','iwlist'] },
+
+  { name:'rfkill', cat:'wireless',
+    desc:'Enable or disable wireless radios (Wi-Fi, Bluetooth, and other RF devices) at the kernel level.',
+    syntax:'rfkill [COMMAND] [type|id]',
+    flags:[
+      {f:'list',       d:'List all RF devices with their soft/hard block state'},
+      {f:'block wifi', d:'Disable the Wi-Fi radio'},
+      {f:'block bt',   d:'Disable the Bluetooth radio'},
+      {f:'block all',  d:'Disable all RF radios'},
+      {f:'unblock N',  d:'Re-enable by type or device ID'},
+    ],
+    examples:[
+      {t:'Check and toggle radios',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">rfkill</span> <span class="ex-arg">list</span>
+<span class="ex-out">0: phy0: Wireless LAN
+   Soft blocked: no
+   Hard blocked: no</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">rfkill</span> <span class="ex-arg">block wifi</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">rfkill</span> <span class="ex-arg">unblock wifi</span>`},
+    ],
+    related:['iw','nmcli','iwconfig'] },
+
+  // ══════════════════════════════════════════════════════════════
+  // SYSTEM TERMINAL COMMANDS
+  // ══════════════════════════════════════════════════════════════
+
+  // ── Navigation ────────────────────────────────────────────────
+  { name:'pwd', cat:'nav',
+    desc:'Print the full path of the current working directory.',
+    syntax:'pwd [-LP]',
+    flags:[
+      {f:'-L', d:'Print logical path (follow symlinks, default)'},
+      {f:'-P', d:'Print physical path, resolving all symlinks'},
+    ],
+    examples:[
+      {t:'Show current directory',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">pwd</span>
+<span class="ex-out">/home/user/projects/myapp</span>`},
+    ],
+    related:['cd','ls'] },
+
+  { name:'cd', cat:'nav',
+    desc:'Change the current working directory. A shell built-in.',
+    syntax:'cd [directory]',
+    flags:[
+      {f:'~',   d:'Home directory shortcut'},
+      {f:'-',   d:'Switch to previous directory'},
+      {f:'..',  d:'Go up one directory level'},
+      {f:'/',   d:'Filesystem root'},
+    ],
+    examples:[
+      {t:'Common navigation',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">cd</span> <span class="ex-arg">~/Documents</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">cd</span> <span class="ex-arg">..</span>           <span class="ex-out"># parent directory</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">cd</span> <span class="ex-arg">-</span>            <span class="ex-out"># back to previous dir</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">cd</span>               <span class="ex-out"># go to home dir</span>`},
+    ],
+    related:['pwd','ls','pushd','popd'] },
+
+  { name:'ls', cat:'nav',
+    desc:'List directory contents. One of the most-used commands in Linux.',
+    syntax:'ls [options] [path]',
+    flags:[
+      {f:'-l',  d:'Long format — permissions, owner, size, date'},
+      {f:'-a',  d:'Show hidden files (names starting with .)'},
+      {f:'-h',  d:'Human-readable sizes (K, M, G)'},
+      {f:'-R',  d:'Recursive — list all subdirectories'},
+      {f:'-t',  d:'Sort by modification time, newest first'},
+      {f:'-S',  d:'Sort by file size, largest first'},
+      {f:'-1',  d:'One file per line'},
+      {f:'--color', d:'Colorised output (usually default)'},
+    ],
+    examples:[
+      {t:'Detailed listing',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ls</span> <span class="ex-flag">-lah</span>
+<span class="ex-out">total 64K
+drwxr-xr-x  5 user user 4.0K Mar 14 10:00 .
+drwxr-xr-x 18 user user 4.0K Mar 13 09:00 ..
+-rw-r--r--  1 user user 2.1K Mar 14 09:30 README.md
+drwxr-xr-x  3 user user 4.0K Mar 12 15:00 src</span>`},
+    ],
+    related:['tree','find','exa'] },
+
+  { name:'tree', cat:'nav',
+    desc:'Display directory structure as an indented tree. Install with dnf install tree.',
+    syntax:'tree [options] [directory]',
+    flags:[
+      {f:'-L N', d:'Limit depth to N levels'},
+      {f:'-a',   d:'Show all files including hidden'},
+      {f:'-d',   d:'Show directories only'},
+      {f:'-f',   d:'Print full path prefix for each file'},
+      {f:'-s',   d:'Print file sizes'},
+      {f:'-h',   d:'Human-readable sizes'},
+    ],
+    examples:[
+      {t:'Two-level project tree',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">tree</span> <span class="ex-flag">-L 2</span>
+<span class="ex-out">.
+├── README.md
+├── src
+│   ├── main.py
+│   └── utils.py
+└── tests
+    └── test_main.py</span>`},
+    ],
+    related:['ls','find'] },
+
+  // ── Files ─────────────────────────────────────────────────────
+  { name:'cp', cat:'files',
+    desc:'Copy files and directories from source to destination.',
+    syntax:'cp [options] source destination',
+    flags:[
+      {f:'-r',  d:'Recursive — copy directories and their contents'},
+      {f:'-p',  d:'Preserve timestamps, permissions and ownership'},
+      {f:'-u',  d:'Copy only when source is newer than destination'},
+      {f:'-v',  d:'Verbose — print each file as it is copied'},
+      {f:'-i',  d:'Interactive — prompt before overwriting'},
+      {f:'-a',  d:'Archive mode: -rpP combined, preserve everything'},
+      {f:'-n',  d:'No-clobber — never overwrite existing files'},
+    ],
+    examples:[
+      {t:'Copy file and directory',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">cp</span> <span class="ex-arg">notes.txt backup.txt</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">cp</span> <span class="ex-flag">-rp</span> <span class="ex-arg">src/ src_backup/</span>`},
+    ],
+    related:['mv','rsync','scp'] },
+
+  { name:'mv', cat:'files',
+    desc:'Move or rename files and directories.',
+    syntax:'mv [options] source destination',
+    flags:[
+      {f:'-i', d:'Prompt before overwriting an existing file'},
+      {f:'-n', d:'Do not overwrite existing files'},
+      {f:'-v', d:'Verbose — print each move operation'},
+      {f:'-u', d:'Move only when source is newer than destination'},
+    ],
+    examples:[
+      {t:'Rename and move',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">mv</span> <span class="ex-arg">old_name.txt new_name.txt</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">mv</span> <span class="ex-arg">*.log /var/log/archive/</span>`},
+    ],
+    related:['cp','rename'] },
+
+  { name:'rm', cat:'files',
+    desc:'Remove files or directories. Permanent — no recycle bin.',
+    syntax:'rm [options] files',
+    flags:[
+      {f:'-r',  d:'Recursive — remove directories and their contents'},
+      {f:'-f',  d:'Force — no prompts, ignore non-existent files'},
+      {f:'-i',  d:'Interactive — prompt before every removal'},
+      {f:'-v',  d:'Verbose — print each removed file'},
+      {f:'--',  d:'End of options (handles filenames starting with -)'},
+    ],
+    examples:[
+      {t:'Remove files safely',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">rm</span> <span class="ex-arg">file.txt</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">rm</span> <span class="ex-flag">-ri</span> <span class="ex-arg">old_dir/</span>   <span class="ex-out"># confirm each file</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">rm</span> <span class="ex-flag">-rf</span> <span class="ex-arg">temp/</span>      <span class="ex-out"># ⚠ no confirmation!</span>`},
+    ],
+    related:['rmdir','shred','trash-cli'] },
+
+  { name:'mkdir', cat:'files',
+    desc:'Create one or more directories.',
+    syntax:'mkdir [options] directory',
+    flags:[
+      {f:'-p',     d:'Create parent directories as needed, no error if exists'},
+      {f:'-m MODE',d:'Set directory permissions (e.g. 755)'},
+      {f:'-v',     d:'Print each directory as it is created'},
+    ],
+    examples:[
+      {t:'Create nested directories',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">mkdir</span> <span class="ex-flag">-p</span> <span class="ex-arg">project/src/components</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">mkdir</span> <span class="ex-flag">-m 750</span> <span class="ex-arg">private_dir</span>`},
+    ],
+    related:['rmdir','touch'] },
+
+  { name:'touch', cat:'files',
+    desc:'Create empty files or update the access/modification timestamps of existing files.',
+    syntax:'touch [options] files',
+    flags:[
+      {f:'-a',      d:'Change access time only'},
+      {f:'-m',      d:'Change modification time only'},
+      {f:'-t STAMP',d:'Use [[CC]YY]MMDDhhmm[.ss] instead of current time'},
+      {f:'-r file', d:'Use timestamps from reference file'},
+    ],
+    examples:[
+      {t:'Create files and update timestamps',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">touch</span> <span class="ex-arg">newfile.txt</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">touch</span> <span class="ex-arg">file1.txt file2.txt file3.txt</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">touch</span> <span class="ex-flag">-r</span> <span class="ex-arg">reference.txt target.txt</span>`},
+    ],
+    related:['mkdir','stat'] },
+
+  { name:'find', cat:'files',
+    desc:'Search for files and directories matching criteria — by name, type, size, date, permissions and more.',
+    syntax:'find [path] [expression]',
+    flags:[
+      {f:'-name "*.ext"', d:'Match filenames with glob pattern (case-sensitive)'},
+      {f:'-iname',        d:'Case-insensitive name match'},
+      {f:'-type f/d/l',   d:'File type: f=regular, d=directory, l=symlink'},
+      {f:'-size +N[ck]',  d:'Files larger than N (c=bytes, k=KB, M=MB)'},
+      {f:'-mtime -N',     d:'Modified less than N days ago'},
+      {f:'-exec CMD {} ;',d:'Run CMD on each matched file'},
+      {f:'-delete',       d:'Delete matched files'},
+      {f:'-maxdepth N',   d:'Limit search depth to N levels'},
+    ],
+    examples:[
+      {t:'Find by name and size',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">find</span> <span class="ex-arg">. -name "*.py" -type f</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">find</span> <span class="ex-arg">/var/log -size +10M -mtime -7</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">find</span> <span class="ex-arg">. -name "*.tmp" -delete</span>`},
+    ],
+    related:['locate','fd','grep'] },
+
+  { name:'ln', cat:'files',
+    desc:'Create hard links or symbolic (soft) links between files.',
+    syntax:'ln [options] target link_name',
+    flags:[
+      {f:'-s', d:'Create a symbolic (soft) link'},
+      {f:'-f', d:'Force — remove existing destination'},
+      {f:'-v', d:'Verbose — print each link created'},
+      {f:'-r', d:'Create symlink relative to link location'},
+    ],
+    examples:[
+      {t:'Create symlinks',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ln</span> <span class="ex-flag">-s</span> <span class="ex-arg">/etc/nginx/sites-available/app /etc/nginx/sites-enabled/app</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">ln</span> <span class="ex-flag">-sf</span> <span class="ex-arg">/usr/bin/python3 /usr/local/bin/python</span>`},
+    ],
+    related:['readlink','symlink','unlink'] },
+
+  { name:'stat', cat:'files',
+    desc:'Display detailed metadata about a file or filesystem — size, permissions, timestamps, inode.',
+    syntax:'stat [options] file',
+    flags:[
+      {f:'-f',        d:'Display filesystem status instead of file status'},
+      {f:'-c FORMAT', d:'Use custom output format string'},
+      {f:'-L',        d:'Dereference symlinks'},
+    ],
+    examples:[
+      {t:'Inspect file metadata',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">stat</span> <span class="ex-arg">/etc/hosts</span>
+<span class="ex-out">  File: /etc/hosts
+  Size: 234       Blocks: 8    IO Block: 4096
+Access: (0644/-rw-r--r--)  Uid: 0  Gid: 0
+Modify: 2024-01-10 09:00:00.000</span>`},
+    ],
+    related:['ls','file','touch'] },
+
+  // ── Processes ─────────────────────────────────────────────────
+  { name:'ps', cat:'proc',
+    desc:'Report a snapshot of current processes. Shows PID, CPU, memory, and command for each process.',
+    syntax:'ps [options]',
+    flags:[
+      {f:'aux',    d:'All processes, user-friendly BSD format'},
+      {f:'-ef',    d:'All processes, full-format POSIX style'},
+      {f:'-u user',d:'Processes owned by a specific user'},
+      {f:'-p PID', d:'Specific process by PID'},
+      {f:'--sort', d:'Sort by field (e.g. --sort=-%cpu)'},
+      {f:'-o fmt', d:'Custom output format'},
+    ],
+    examples:[
+      {t:'Find a process',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">ps</span> <span class="ex-arg">aux</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">nginx</span>
+<span class="ex-out">www-data  1234  0.0  0.1  nginx: master process</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">ps</span> <span class="ex-arg">aux --sort=-%cpu</span> | <span class="ex-cmd">head</span> <span class="ex-arg">-10</span>`},
+    ],
+    related:['top','htop','kill','pgrep'] },
+
+  { name:'top', cat:'proc',
+    desc:'Real-time interactive process viewer — CPU, memory, load average. Press q to quit, h for help.',
+    syntax:'top [options]',
+    flags:[
+      {f:'-u user', d:'Show only processes for a specific user'},
+      {f:'-p PID',  d:'Monitor specific process ID(s)'},
+      {f:'-n N',    d:'Exit after N iterations (batch mode)'},
+      {f:'-b',      d:'Batch mode — non-interactive, suitable for scripting'},
+      {f:'-d N',    d:'Refresh interval in seconds'},
+    ],
+    examples:[
+      {t:'Monitor and snapshot',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">top</span>                     <span class="ex-out"># live — q to quit</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">top</span> <span class="ex-flag">-bn1</span> | <span class="ex-cmd">head</span> <span class="ex-arg">-20</span>  <span class="ex-out"># one snapshot</span>`},
+    ],
+    related:['htop','ps','pidstat'] },
+
+  { name:'htop', cat:'proc',
+    desc:'Enhanced interactive process viewer with colour, mouse support, and easy kill/renice. Install: dnf install htop.',
+    syntax:'htop [options]',
+    flags:[
+      {f:'-u user',  d:'Show only processes for user'},
+      {f:'-p PID,…', d:'Monitor specific PIDs'},
+      {f:'-d N',     d:'Refresh interval (tenths of a second)'},
+      {f:'-s COLUMN',d:'Sort by column name'},
+    ],
+    examples:[
+      {t:'Launch htop',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">htop</span>                  <span class="ex-out"># F10 or q to quit</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">htop</span> <span class="ex-flag">-u</span> <span class="ex-arg">www-data</span>      <span class="ex-out"># filter by user</span>`},
+    ],
+    related:['top','ps','glances'] },
+
+  { name:'kill', cat:'proc',
+    desc:'Send a signal to a process by PID. Default signal is SIGTERM (15) for graceful termination.',
+    syntax:'kill [options] PID',
+    flags:[
+      {f:'-9  / -SIGKILL',  d:'Force-kill immediately — cannot be caught'},
+      {f:'-15 / -SIGTERM',  d:'Graceful termination (default)'},
+      {f:'-1  / -SIGHUP',   d:'Hangup — reload config for many daemons'},
+      {f:'-l',              d:'List all available signal names'},
+    ],
+    examples:[
+      {t:'Terminate processes',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">kill</span> <span class="ex-arg">1234</span>         <span class="ex-out"># graceful SIGTERM</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">kill</span> <span class="ex-flag">-9</span> <span class="ex-arg">1234</span>      <span class="ex-out"># force kill</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">kill</span> <span class="ex-flag">-HUP</span> <span class="ex-arg">$(cat /var/run/nginx.pid)</span>`},
+    ],
+    related:['killall','pkill','ps','pgrep'] },
+
+  { name:'killall', cat:'proc',
+    desc:'Kill all processes matching a name. More convenient than finding PIDs manually.',
+    syntax:'killall [options] name',
+    flags:[
+      {f:'-9',      d:'Send SIGKILL (force kill)'},
+      {f:'-i',      d:'Interactive — ask before killing each process'},
+      {f:'-u user', d:'Kill only processes owned by user'},
+      {f:'-v',      d:'Verbose — report each signal sent'},
+      {f:'-w',      d:'Wait for all killed processes to exit'},
+    ],
+    examples:[
+      {t:'Kill by name',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">killall</span> <span class="ex-arg">firefox</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">killall</span> <span class="ex-flag">-9</span> <span class="ex-arg">chromium</span>`},
+    ],
+    related:['kill','pkill','ps'] },
+
+  { name:'pgrep', cat:'proc',
+    desc:'Look up or signal processes by name or attribute — returns matching PIDs.',
+    syntax:'pgrep [options] pattern',
+    flags:[
+      {f:'-l',      d:'List PID and process name'},
+      {f:'-a',      d:'List PID and full command line'},
+      {f:'-u user', d:'Match processes for specific user'},
+      {f:'-x',      d:'Exact match (full process name)'},
+      {f:'-n',      d:'Return only the newest (most recently started) match'},
+    ],
+    examples:[
+      {t:'Find process PIDs',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">pgrep</span> <span class="ex-flag">-la</span> <span class="ex-arg">nginx</span>
+<span class="ex-out">1234 nginx: master process /usr/sbin/nginx
+1235 nginx: worker process</span>`},
+    ],
+    related:['pkill','ps','kill'] },
+
+  { name:'nice', cat:'proc',
+    desc:'Run a command with a modified scheduling priority (niceness). Range: -20 (highest) to 19 (lowest).',
+    syntax:'nice [options] command',
+    flags:[
+      {f:'-n N', d:'Set niceness adjustment (default 10)'},
+    ],
+    examples:[
+      {t:'Run with low priority',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">nice</span> <span class="ex-flag">-n 19</span> <span class="ex-arg">make -j8</span>   <span class="ex-out"># low-priority build</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">renice</span> <span class="ex-flag">-n 5</span> <span class="ex-arg">-p 1234</span>  <span class="ex-out"># change running process</span>`},
+    ],
+    related:['renice','top','ps'] },
+
+  // ── System Info ───────────────────────────────────────────────
+  { name:'uname', cat:'sysinfo',
+    desc:'Print system information — kernel name, version, hostname, hardware architecture.',
+    syntax:'uname [options]',
+    flags:[
+      {f:'-a', d:'All information'},
+      {f:'-r', d:'Kernel release version only'},
+      {f:'-m', d:'Machine hardware architecture (x86_64, aarch64…)'},
+      {f:'-n', d:'Network hostname'},
+      {f:'-s', d:'Kernel name (Linux)'},
+    ],
+    examples:[
+      {t:'Show kernel and arch',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">uname</span> <span class="ex-flag">-a</span>
+<span class="ex-out">Linux hostname 6.7.4-200.fc39.x86_64 #1 SMP x86_64 GNU/Linux</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">uname</span> <span class="ex-flag">-r</span>
+<span class="ex-out">6.7.4-200.fc39.x86_64</span>`},
+    ],
+    related:['hostnamectl','lscpu','dmidecode'] },
+
+  { name:'uptime', cat:'sysinfo',
+    desc:'Show how long the system has been running, number of logged-in users, and load averages.',
+    syntax:'uptime [options]',
+    flags:[
+      {f:'-p', d:'Pretty format: "up 2 hours, 30 minutes"'},
+      {f:'-s', d:'System up since timestamp'},
+    ],
+    examples:[
+      {t:'Show uptime',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">uptime</span>
+<span class="ex-out"> 14:23:05 up 2 days,  3:45,  2 users,  load average: 0.52, 0.41, 0.38</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">uptime</span> <span class="ex-flag">-s</span>
+<span class="ex-out">2026-03-12 10:38:14</span>`},
+    ],
+    related:['w','who','top'] },
+
+  { name:'free', cat:'sysinfo',
+    desc:'Display total, used, and free memory (RAM and swap) in the system.',
+    syntax:'free [options]',
+    flags:[
+      {f:'-h',  d:'Human-readable (K, M, G)'},
+      {f:'-m',  d:'Output in megabytes'},
+      {f:'-g',  d:'Output in gigabytes'},
+      {f:'-s N',d:'Continuously update every N seconds'},
+      {f:'-t',  d:'Show totals row'},
+    ],
+    examples:[
+      {t:'Check memory usage',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">free</span> <span class="ex-flag">-h</span>
+<span class="ex-out">               total    used    free   shared  buff/cache  available
+Mem:            15Gi    4.2Gi   7.1Gi    512Mi       3.7Gi       10Gi
+Swap:            2Gi      0Bi   2.0Gi</span>`},
+    ],
+    related:['top','vmstat','htop'] },
+
+  { name:'df', cat:'sysinfo',
+    desc:'Report disk space usage of filesystems.',
+    syntax:'df [options] [filesystem]',
+    flags:[
+      {f:'-h',     d:'Human-readable sizes'},
+      {f:'-T',     d:'Show filesystem type'},
+      {f:'-i',     d:'Show inode usage instead of block usage'},
+      {f:'--total',d:'Produce a grand total row'},
+      {f:'-x TYPE',d:'Exclude filesystem type'},
+    ],
+    examples:[
+      {t:'Disk space overview',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">df</span> <span class="ex-flag">-hT</span>
+<span class="ex-out">Filesystem     Type   Size  Used Avail Use% Mounted on
+/dev/sda1      ext4   100G   42G   53G  45% /
+tmpfs          tmpfs  7.8G  1.2M  7.8G   1% /run</span>`},
+    ],
+    related:['du','lsblk','fdisk'] },
+
+  { name:'du', cat:'sysinfo',
+    desc:'Estimate file and directory disk usage.',
+    syntax:'du [options] [path]',
+    flags:[
+      {f:'-h',        d:'Human-readable sizes'},
+      {f:'-s',        d:'Summary — show total only'},
+      {f:'-a',        d:'Show all files, not just directories'},
+      {f:'--max-depth=N', d:'Limit depth of directory traversal'},
+      {f:'--exclude', d:'Exclude files matching pattern'},
+    ],
+    examples:[
+      {t:'Find largest directories',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">du</span> <span class="ex-flag">-sh</span> <span class="ex-arg">*</span> | <span class="ex-cmd">sort</span> <span class="ex-flag">-rh</span> | <span class="ex-cmd">head</span> <span class="ex-arg">-10</span>
+<span class="ex-out">3.2G  node_modules
+1.4G  .git
+452M  dist</span>`},
+    ],
+    related:['df','ncdu','lsblk'] },
+
+  { name:'lscpu', cat:'sysinfo',
+    desc:'Display detailed CPU architecture information — cores, threads, cache, speed, NUMA topology.',
+    syntax:'lscpu [options]',
+    flags:[
+      {f:'-J',    d:'JSON output'},
+      {f:'-e',    d:'Extended readable format'},
+      {f:'-p',    d:'Parseable output'},
+      {f:'--all', d:'Print all online and offline CPUs'},
+    ],
+    examples:[
+      {t:'Show CPU info',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">lscpu</span>
+<span class="ex-out">Architecture:    x86_64
+CPU(s):          8
+Thread(s)/core:  2
+Core(s)/socket:  4
+Model name:      Intel Core i7-1165G7 @ 2.80GHz
+CPU MHz:         2800.000</span>`},
+    ],
+    related:['nproc','dmidecode','/proc/cpuinfo'] },
+
+  { name:'lsblk', cat:'sysinfo',
+    desc:'List block devices — disks, partitions, LVM volumes and loop devices in a tree structure.',
+    syntax:'lsblk [options] [device]',
+    flags:[
+      {f:'-f',    d:'Show filesystem info (type, UUID, mountpoint)'},
+      {f:'-o',    d:'Custom output columns (e.g. NAME,SIZE,TYPE,MOUNTPOINT)'},
+      {f:'-J',    d:'JSON output'},
+      {f:'-d',    d:'Do not show partition tree — devices only'},
+      {f:'-n',    d:'No header row'},
+    ],
+    examples:[
+      {t:'Show all block devices',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">lsblk</span> <span class="ex-flag">-f</span>
+<span class="ex-out">NAME    FSTYPE LABEL  UUID         MOUNTPOINT
+sda
+├─sda1  ext4          xxxx-yyyy    /
+└─sda2  swap          xxxx-zzzz    [SWAP]</span>`},
+    ],
+    related:['fdisk','df','blkid'] },
+
+  { name:'lshw', cat:'sysinfo',
+    desc:'Detailed hardware information — CPU, RAM, disks, network cards, USB, PCI devices.',
+    syntax:'lshw [options]',
+    flags:[
+      {f:'-short',   d:'Compact one-line-per-device summary'},
+      {f:'-class C', d:'Filter by hardware class (cpu, memory, network…)'},
+      {f:'-json',    d:'JSON output'},
+      {f:'-html',    d:'HTML output'},
+      {f:'-sanitize',d:'Mask sensitive data like serial numbers'},
+    ],
+    examples:[
+      {t:'Quick hardware summary',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">lshw</span> <span class="ex-flag">-short</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">lshw</span> <span class="ex-flag">-class network</span>   <span class="ex-out"># NICs only</span>`},
+    ],
+    related:['lscpu','lsblk','dmidecode','inxi'] },
+
+  { name:'journalctl', cat:'sysinfo',
+    desc:'Query and display logs from the systemd journal — the central log store on modern Linux.',
+    syntax:'journalctl [options]',
+    flags:[
+      {f:'-f',         d:'Follow (tail) new log entries in real time'},
+      {f:'-n N',       d:'Show the last N lines'},
+      {f:'-u UNIT',    d:'Filter by systemd unit (e.g. nginx.service)'},
+      {f:'-p ERR',     d:'Filter by priority: emerg, alert, crit, err, warning, notice, info, debug'},
+      {f:'--since "X"',d:'Show logs since date/time string'},
+      {f:'--until "X"',d:'Show logs until date/time string'},
+      {f:'-b',         d:'Show logs from current boot only'},
+      {f:'--disk-usage',d:'Show total journal disk usage'},
+    ],
+    examples:[
+      {t:'Common log queries',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">journalctl</span> <span class="ex-flag">-f</span>                      <span class="ex-out"># live tail</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">journalctl</span> <span class="ex-flag">-u nginx.service -n 50</span>   <span class="ex-out"># last 50 nginx lines</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">journalctl</span> <span class="ex-flag">-p err -b</span>               <span class="ex-out"># errors this boot</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">journalctl</span> <span class="ex-flag">--since "1 hour ago"</span>`},
+    ],
+    related:['dmesg','systemctl','tail'] },
+
+  { name:'dmesg', cat:'sysinfo',
+    desc:'Print kernel ring buffer messages — hardware events, driver messages, boot logs.',
+    syntax:'dmesg [options]',
+    flags:[
+      {f:'-H',         d:'Human-readable output with timestamps'},
+      {f:'-T',         d:'Print timestamps in local time'},
+      {f:'-f FACILITY',d:'Filter by facility: kern, daemon, user…'},
+      {f:'-l LEVEL',   d:'Filter by level: err, warn, info, debug'},
+      {f:'-w',         d:'Follow new messages (like tail -f)'},
+      {f:'--clear',    d:'Clear the ring buffer after printing'},
+    ],
+    examples:[
+      {t:'View kernel messages',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">dmesg</span> <span class="ex-flag">-H</span> | <span class="ex-cmd">tail</span> <span class="ex-arg">-30</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">dmesg</span> <span class="ex-flag">-l err,warn</span>        <span class="ex-out"># errors and warnings only</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">dmesg</span> <span class="ex-flag">-w</span>               <span class="ex-out"># follow live</span>`},
+    ],
+    related:['journalctl','syslog'] },
+
+  // ── Permissions ───────────────────────────────────────────────
+  { name:'chmod', cat:'perms',
+    desc:'Change file mode (permissions) — who can read, write or execute a file.',
+    syntax:'chmod [options] mode file',
+    flags:[
+      {f:'-R',      d:'Recursive — apply to all files in directory'},
+      {f:'-v',      d:'Verbose — show each file changed'},
+      {f:'--reference',d:'Set same mode as reference file'},
+    ],
+    examples:[
+      {t:'Common permission changes',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">chmod</span> <span class="ex-arg">755 script.sh</span>       <span class="ex-out"># rwxr-xr-x</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">chmod</span> <span class="ex-arg">644 config.conf</span>     <span class="ex-out"># rw-r--r--</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">chmod</span> <span class="ex-arg">+x deploy.sh</span>       <span class="ex-out"># make executable</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">chmod</span> <span class="ex-flag">-R</span> <span class="ex-arg">750 /var/app/</span>  <span class="ex-out"># recursive</span>`},
+    ],
+    related:['chown','chgrp','umask','stat'] },
+
+  { name:'chown', cat:'perms',
+    desc:'Change the owner and/or group of files and directories.',
+    syntax:'chown [options] owner[:group] file',
+    flags:[
+      {f:'-R',         d:'Recursive — change all files in directory'},
+      {f:'-v',         d:'Verbose — print each change'},
+      {f:'--reference',d:'Use owner:group from reference file'},
+    ],
+    examples:[
+      {t:'Change ownership',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">chown</span> <span class="ex-arg">alice file.txt</span>           <span class="ex-out"># change owner</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">chown</span> <span class="ex-arg">alice:webteam file.txt</span>   <span class="ex-out"># owner and group</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">chown</span> <span class="ex-flag">-R</span> <span class="ex-arg">www-data:www-data /var/www/</span>`},
+    ],
+    related:['chmod','chgrp','id'] },
+
+  { name:'sudo', cat:'perms',
+    desc:'Execute a command as another user (default: root). Reads privileges from /etc/sudoers.',
+    syntax:'sudo [options] command',
+    flags:[
+      {f:'-u user',  d:'Run as specified user (default: root)'},
+      {f:'-i',       d:'Start a login shell as the target user'},
+      {f:'-s',       d:'Start a shell as target user'},
+      {f:'-l',       d:'List commands the user is allowed to run'},
+      {f:'-k',       d:'Invalidate cached credentials (force re-auth next time)'},
+      {f:'--',       d:'End of sudo options — pass rest to command'},
+    ],
+    examples:[
+      {t:'Common sudo usage',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">sudo</span> <span class="ex-arg">systemctl restart nginx</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">sudo</span> <span class="ex-flag">-u postgres</span> <span class="ex-arg">psql</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">sudo</span> <span class="ex-flag">-i</span>          <span class="ex-out"># root shell</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">sudo</span> <span class="ex-flag">-l</span>          <span class="ex-out"># list allowed commands</span>`},
+    ],
+    related:['su','visudo','id'] },
+
+  { name:'su', cat:'perms',
+    desc:'Switch user — start a new shell session as another user.',
+    syntax:'su [options] [user]',
+    flags:[
+      {f:'-',       d:'Start a login shell (load user\'s environment)'},
+      {f:'-c CMD',  d:'Execute single command then return'},
+      {f:'-s SHELL',d:'Use specified shell'},
+    ],
+    examples:[
+      {t:'Switch users',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">su</span> <span class="ex-flag">-</span> <span class="ex-arg">alice</span>       <span class="ex-out"># login shell as alice</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">su</span> <span class="ex-arg">-</span>            <span class="ex-out"># switch to root</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">su</span> <span class="ex-flag">-c</span> <span class="ex-arg">"whoami" alice</span>`},
+    ],
+    related:['sudo','id','who'] },
+
+  // ── Text & Search ─────────────────────────────────────────────
+  { name:'grep', cat:'text',
+    desc:'Search for patterns in files or stdin using regular expressions. Fundamental Unix filter.',
+    syntax:'grep [options] pattern [file…]',
+    flags:[
+      {f:'-r',   d:'Recursive — search all files in directory'},
+      {f:'-i',   d:'Case-insensitive matching'},
+      {f:'-n',   d:'Show line numbers'},
+      {f:'-l',   d:'Print only filenames containing matches'},
+      {f:'-c',   d:'Print only match count per file'},
+      {f:'-v',   d:'Invert — print lines NOT matching'},
+      {f:'-E',   d:'Extended regex (ERE) — enables +, ?, |, ()'},
+      {f:'-A N', d:'Print N lines after each match'},
+      {f:'-B N', d:'Print N lines before each match'},
+      {f:'-o',   d:'Print only the matched portion'},
+    ],
+    examples:[
+      {t:'Common grep patterns',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">grep</span> <span class="ex-flag">-rn</span> <span class="ex-arg">"TODO" ./src/</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">grep</span> <span class="ex-flag">-i</span> <span class="ex-arg">"error" /var/log/syslog</span> | <span class="ex-cmd">tail</span> <span class="ex-arg">-20</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">grep</span> <span class="ex-flag">-Eo</span> <span class="ex-arg">"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"</span> <span class="ex-arg">access.log</span>`},
+    ],
+    related:['awk','sed','find','rg'] },
+
+  { name:'sed', cat:'text',
+    desc:'Stream editor — transform text using substitution, deletion, and address ranges.',
+    syntax:'sed [options] script [file…]',
+    flags:[
+      {f:'-i',        d:'Edit file in-place'},
+      {f:'-i.bak',    d:'In-place edit, keep .bak backup'},
+      {f:'-n',        d:'Suppress default output (use with /p)'},
+      {f:'-E',        d:'Use extended regex'},
+      {f:'-e script', d:'Add expression (chain multiple)'},
+    ],
+    examples:[
+      {t:'Substitution and deletion',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">sed</span> <span class="ex-arg">'s/foo/bar/g' file.txt</span>           <span class="ex-out"># replace all</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">sed</span> <span class="ex-flag">-i</span> <span class="ex-arg">'s/localhost/prod.server/g' config.cfg</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">sed</span> <span class="ex-arg">'/^#/d' config.conf</span>              <span class="ex-out"># delete comment lines</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">sed</span> <span class="ex-flag">-n</span> <span class="ex-arg">'10,20p' largefile.txt</span>        <span class="ex-out"># print lines 10-20</span>`},
+    ],
+    related:['awk','grep','tr','cut'] },
+
+  { name:'awk', cat:'text',
+    desc:'Pattern-scanning and data-extraction language. Ideal for columnar data and log processing.',
+    syntax:'awk [options] program [file…]',
+    flags:[
+      {f:'-F SEP',    d:'Set field separator (default: whitespace)'},
+      {f:'-v var=val',d:'Set variable before execution'},
+      {f:'-f file',   d:'Read awk program from file'},
+    ],
+    examples:[
+      {t:'Field extraction and sums',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">awk</span> <span class="ex-flag">-F:</span> <span class="ex-arg">'{print $1}' /etc/passwd</span>      <span class="ex-out"># usernames</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">awk</span> <span class="ex-arg">'{sum+=$1} END{print sum}' nums.txt</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">awk</span> <span class="ex-arg">'$3 > 1000 {print $1, $3}' file.txt</span>  <span class="ex-out"># filter rows</span>`},
+    ],
+    related:['sed','grep','cut','sort'] },
+
+  { name:'tail', cat:'text',
+    desc:'Output the last part of files. Most commonly used to follow live log files.',
+    syntax:'tail [options] [file…]',
+    flags:[
+      {f:'-n N', d:'Output the last N lines (default 10)'},
+      {f:'-f',   d:'Follow — output appended data as file grows'},
+      {f:'-F',   d:'Follow by filename — handles log rotation'},
+      {f:'-c N', d:'Output the last N bytes'},
+      {f:'-q',   d:'Quiet — never print headers'},
+    ],
+    examples:[
+      {t:'Follow a log file',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">tail</span> <span class="ex-flag">-f</span> <span class="ex-arg">/var/log/nginx/access.log</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">tail</span> <span class="ex-flag">-n 100</span> <span class="ex-arg">app.log</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">ERROR</span>`},
+    ],
+    related:['head','less','journalctl','watch'] },
+
+  { name:'less', cat:'text',
+    desc:'Page through file contents interactively. Better than more — scroll up and down, search in-place.',
+    syntax:'less [options] [file]',
+    flags:[
+      {f:'-N',      d:'Show line numbers'},
+      {f:'-S',      d:'Chop long lines (no wrapping)'},
+      {f:'-i',      d:'Case-insensitive search'},
+      {f:'+F',      d:'Follow mode — like tail -f'},
+      {f:'-R',      d:'Display ANSI colour codes'},
+    ],
+    examples:[
+      {t:'Navigate and search',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">less</span> <span class="ex-arg">/var/log/syslog</span>   <span class="ex-out"># /pattern to search, q to quit</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">less</span> <span class="ex-flag">-N</span> <span class="ex-arg">config.yaml</span>   <span class="ex-out"># with line numbers</span>`},
+    ],
+    related:['more','tail','cat','bat'] },
+
+  { name:'cat', cat:'text',
+    desc:'Concatenate and print file contents. Often piped to other commands.',
+    syntax:'cat [options] [file…]',
+    flags:[
+      {f:'-n',  d:'Number all output lines'},
+      {f:'-A',  d:'Show non-printable characters (tabs as ^I, newlines as $)'},
+      {f:'-s',  d:'Suppress repeated empty lines'},
+      {f:'-b',  d:'Number non-blank lines only'},
+    ],
+    examples:[
+      {t:'View and concatenate',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">cat</span> <span class="ex-arg">config.yml</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">cat</span> <span class="ex-arg">part1.txt part2.txt</span> <span class="ex-flag">></span> <span class="ex-arg">combined.txt</span>`},
+    ],
+    related:['less','bat','head','tail'] },
+
+  { name:'sort', cat:'text',
+    desc:'Sort lines of text — alphabetically, numerically, by field, or in reverse.',
+    syntax:'sort [options] [file…]',
+    flags:[
+      {f:'-n',      d:'Numeric sort (treats fields as numbers)'},
+      {f:'-r',      d:'Reverse sort order'},
+      {f:'-u',      d:'Unique — remove duplicate lines'},
+      {f:'-k N',    d:'Sort by Nth field'},
+      {f:'-t SEP',  d:'Field separator character'},
+      {f:'-h',      d:'Human-readable sort (e.g. 2K, 1M, 5G)'},
+    ],
+    examples:[
+      {t:'Sort and deduplicate',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">sort</span> <span class="ex-flag">-u</span> <span class="ex-arg">list.txt</span>                   <span class="ex-out"># unique sorted lines</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">du</span> <span class="ex-flag">-sh</span> <span class="ex-arg">*</span> | <span class="ex-cmd">sort</span> <span class="ex-flag">-rh</span>               <span class="ex-out"># largest dirs first</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">sort</span> <span class="ex-flag">-t: -k3 -n</span> <span class="ex-arg">/etc/passwd</span>        <span class="ex-out"># sort by UID</span>`},
+    ],
+    related:['uniq','awk','cut'] },
+
+  { name:'wc', cat:'text',
+    desc:'Count lines, words, and characters in files or stdin.',
+    syntax:'wc [options] [file…]',
+    flags:[
+      {f:'-l', d:'Count lines only'},
+      {f:'-w', d:'Count words only'},
+      {f:'-c', d:'Count bytes'},
+      {f:'-m', d:'Count characters (multibyte-aware)'},
+    ],
+    examples:[
+      {t:'Count lines in files',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">wc</span> <span class="ex-flag">-l</span> <span class="ex-arg">access.log</span>
+<span class="ex-out">45231 access.log</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">cat</span> <span class="ex-arg">words.txt</span> | <span class="ex-cmd">wc</span> <span class="ex-flag">-w</span>
+<span class="ex-out">1024</span>`},
+    ],
+    related:['grep','sort','awk'] },
+
+  // ── Packages ──────────────────────────────────────────────────
+  { name:'dnf', cat:'pkg',
+    desc:'Fedora/RHEL package manager — install, update, remove, and query software packages from repositories.',
+    syntax:'dnf [options] command [package]',
+    flags:[
+      {f:'install PKG',   d:'Install a package (with dependencies)'},
+      {f:'remove PKG',    d:'Remove a package'},
+      {f:'update',        d:'Update all installed packages'},
+      {f:'upgrade PKG',   d:'Update a specific package'},
+      {f:'search TERM',   d:'Search available packages by name/description'},
+      {f:'info PKG',      d:'Show detailed package information'},
+      {f:'list installed',d:'List all installed packages'},
+      {f:'history',       d:'Show transaction history'},
+      {f:'autoremove',    d:'Remove unused dependencies'},
+      {f:'clean all',     d:'Clear all cached package data'},
+    ],
+    examples:[
+      {t:'Common package operations',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">dnf</span> <span class="ex-arg">install htop git vim</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">dnf</span> <span class="ex-arg">update</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">dnf</span> <span class="ex-arg">search "text editor"</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">dnf</span> <span class="ex-arg">history undo last</span>  <span class="ex-out"># undo last transaction</span>`},
+    ],
+    related:['rpm','flatpak','snap'] },
+
+  { name:'rpm', cat:'pkg',
+    desc:'Low-level RPM package manager — install, query, verify and remove .rpm files directly.',
+    syntax:'rpm [options] package.rpm',
+    flags:[
+      {f:'-i / --install',d:'Install a package'},
+      {f:'-U / --upgrade',d:'Upgrade (or install) a package'},
+      {f:'-e / --erase',  d:'Uninstall a package'},
+      {f:'-q',            d:'Query installed packages'},
+      {f:'-qa',           d:'Query all installed packages'},
+      {f:'-ql PKG',       d:'List files installed by package'},
+      {f:'-qf FILE',      d:'Find which package owns a file'},
+      {f:'-V PKG',        d:'Verify package files'},
+      {f:'--nodeps',      d:'Skip dependency checks (use carefully)'},
+    ],
+    examples:[
+      {t:'Query and install RPMs',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">rpm</span> <span class="ex-flag">-qf</span> <span class="ex-arg">/usr/bin/ssh</span>
+<span class="ex-out">openssh-clients-8.7p1-38.fc39.x86_64</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">rpm</span> <span class="ex-flag">-ivh</span> <span class="ex-arg">package.rpm</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">rpm</span> <span class="ex-flag">-qa</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">nginx</span>`},
+    ],
+    related:['dnf','dpkg'] },
+
+  { name:'flatpak', cat:'pkg',
+    desc:'Install and run sandboxed Flatpak applications — distro-agnostic app format with Flathub repository.',
+    syntax:'flatpak [options] command',
+    flags:[
+      {f:'install REMOTE ID',d:'Install an application'},
+      {f:'uninstall ID',     d:'Remove an application'},
+      {f:'update',           d:'Update all installed Flatpaks'},
+      {f:'list',             d:'List installed applications'},
+      {f:'run ID',           d:'Launch an installed application'},
+      {f:'remote-list',      d:'Show configured remotes (repositories)'},
+      {f:'remote-add',       d:'Add a new remote (e.g. Flathub)'},
+    ],
+    examples:[
+      {t:'Install from Flathub',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">flatpak</span> <span class="ex-arg">remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">flatpak</span> <span class="ex-arg">install flathub org.gimp.GIMP</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">flatpak</span> <span class="ex-arg">update</span>`},
+    ],
+    related:['dnf','snap'] },
+
+  // ── Services ──────────────────────────────────────────────────
+  { name:'systemctl', cat:'services',
+    desc:'Control systemd services, units, and the system state — start, stop, enable, and inspect services.',
+    syntax:'systemctl [options] command [unit]',
+    flags:[
+      {f:'start UNIT',   d:'Start a service immediately'},
+      {f:'stop UNIT',    d:'Stop a service immediately'},
+      {f:'restart UNIT', d:'Stop then start a service'},
+      {f:'reload UNIT',  d:'Reload configuration without stopping'},
+      {f:'enable UNIT',  d:'Enable service to start at boot'},
+      {f:'disable UNIT', d:'Disable service from starting at boot'},
+      {f:'status UNIT',  d:'Show current state and recent logs'},
+      {f:'is-active UNIT',d:'Exit 0 if unit is running'},
+      {f:'list-units',   d:'List all loaded units'},
+      {f:'--failed',     d:'List failed units only'},
+      {f:'daemon-reload',d:'Reload unit files after editing them'},
+    ],
+    examples:[
+      {t:'Manage nginx',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">systemctl</span> <span class="ex-arg">status nginx</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">systemctl</span> <span class="ex-arg">enable --now nginx</span>   <span class="ex-out"># enable + start</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">systemctl</span> <span class="ex-arg">restart nginx</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">systemctl</span> <span class="ex-flag">--failed</span>            <span class="ex-out"># see what broke</span>`},
+    ],
+    related:['journalctl','service','init'] },
+
+  { name:'crontab', cat:'services',
+    desc:'Schedule recurring commands with cron — edit per-user crontab files.',
+    syntax:'crontab [options]',
+    flags:[
+      {f:'-e',      d:'Edit current user\'s crontab'},
+      {f:'-l',      d:'List current crontab entries'},
+      {f:'-r',      d:'Remove (delete) all crontab entries'},
+      {f:'-u user', d:'Operate on another user\'s crontab (root)'},
+    ],
+    examples:[
+      {t:'Cron schedule format',c:`<span class="ex-out"># MIN HOUR DOM MON DOW COMMAND
+# ┌───────── minute (0-59)
+# │ ┌───────── hour (0-23)
+# │ │ ┌───────── day of month (1-31)
+# │ │ │ ┌───────── month (1-12)
+# │ │ │ │ ┌───────── day of week (0-6, Sun=0)</span>
+<span class="ex-out">  0 2 * * * /usr/bin/backup.sh      # 2am daily</span>
+<span class="ex-out">*/5 * * * * /usr/bin/check.sh       # every 5 min</span>
+<span class="ex-out">  0 9 * * 1 /usr/bin/report.sh      # Mon 9am</span>`},
+    ],
+    related:['systemctl','at','anacron'] },
+
+  // ── Disk ──────────────────────────────────────────────────────
+  { name:'fdisk', cat:'disk',
+    desc:'Partition table manipulator for MBR and GPT disks. Use gdisk or parted for GPT.',
+    syntax:'fdisk [options] device',
+    flags:[
+      {f:'-l',       d:'List partition tables for all or named devices'},
+      {f:'-u sectors',d:'Display in sector units'},
+      {f:'-b N',     d:'Specify sector size (512/1024/2048/4096)'},
+    ],
+    examples:[
+      {t:'List partitions',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">fdisk</span> <span class="ex-flag">-l</span>
+<span class="ex-out">Disk /dev/sda: 500 GiB
+Device     Boot   Start       End   Sectors  Size Type
+/dev/sda1  *       2048   1050623   1048576  512M EFI
+/dev/sda2       1050624 976773134 975722511  465G Linux</span>`},
+    ],
+    related:['parted','lsblk','mkfs','mount'] },
+
+  { name:'mount', cat:'disk',
+    desc:'Mount a filesystem or show currently mounted filesystems.',
+    syntax:'mount [options] device mountpoint',
+    flags:[
+      {f:'-t TYPE',    d:'Filesystem type (ext4, xfs, ntfs, tmpfs…)'},
+      {f:'-o options', d:'Mount options (ro, rw, noexec, nosuid…)'},
+      {f:'-a',         d:'Mount all filesystems from /etc/fstab'},
+      {f:'-l',         d:'List mounted filesystems with labels'},
+      {f:'--bind',     d:'Bind-mount a directory to another location'},
+    ],
+    examples:[
+      {t:'Mount and list',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">mount</span> <span class="ex-arg">/dev/sdb1 /mnt/usb</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">mount</span> <span class="ex-flag">-t ext4 -o ro</span> <span class="ex-arg">/dev/sdc1 /mnt/data</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">mount</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">sdb</span>   <span class="ex-out"># verify mount</span>`},
+    ],
+    related:['umount','lsblk','fstab','df'] },
+
+  { name:'umount', cat:'disk',
+    desc:'Unmount a mounted filesystem. All writes must complete before unmounting.',
+    syntax:'umount [options] device|mountpoint',
+    flags:[
+      {f:'-f', d:'Force unmount (use carefully, may cause data loss)'},
+      {f:'-l', d:'Lazy unmount — detach now, clean up later'},
+      {f:'-a', d:'Unmount all filesystems in /etc/mtab'},
+    ],
+    examples:[
+      {t:'Unmount a device',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">umount</span> <span class="ex-arg">/mnt/usb</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">umount</span> <span class="ex-arg">/dev/sdb1</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">lsof</span> <span class="ex-arg">/mnt/usb</span>  <span class="ex-out"># if busy — find open files</span>`},
+    ],
+    related:['mount','lsblk','sync'] },
+
+  // ── Shell ─────────────────────────────────────────────────────
+  { name:'history', cat:'shell',
+    desc:'Display or manipulate the command history list. Each interactive session appends to ~/.bash_history.',
+    syntax:'history [options] [N]',
+    flags:[
+      {f:'N',   d:'Show last N commands'},
+      {f:'-c',  d:'Clear the history list'},
+      {f:'-d N',d:'Delete history entry at offset N'},
+      {f:'-w',  d:'Write current history to history file'},
+      {f:'!N',  d:'Re-execute command number N'},
+      {f:'!!',  d:'Re-execute the last command'},
+    ],
+    examples:[
+      {t:'Search and replay',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">history</span> <span class="ex-arg">20</span>           <span class="ex-out"># last 20 commands</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">history</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">ssh</span>  <span class="ex-out"># find SSH commands</span>
+<span class="ex-out">!42           # re-run entry 42</span>
+<span class="ex-out">Ctrl+R        # reverse incremental search</span>`},
+    ],
+    related:['alias','bash','zsh'] },
+
+  { name:'alias', cat:'shell',
+    desc:'Create shorthand names for commands or command sequences.',
+    syntax:'alias [name=value]',
+    flags:[
+      {f:'alias',       d:'List all current aliases'},
+      {f:'alias x=CMD', d:'Create alias x for CMD'},
+      {f:'unalias x',   d:'Remove alias x'},
+    ],
+    examples:[
+      {t:'Common aliases',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">alias</span> <span class="ex-arg">ll='ls -lah'</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">alias</span> <span class="ex-arg">gs='git status'</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">alias</span> <span class="ex-arg">..='cd ..'</span>
+<span class="ex-out"># Add to ~/.bashrc to persist</span>`},
+    ],
+    related:['history','bash','function'] },
+
+  { name:'env', cat:'shell',
+    desc:'Display the current environment variables, or run a command with a modified environment.',
+    syntax:'env [options] [NAME=VALUE…] [command]',
+    flags:[
+      {f:'-i',       d:'Start with an empty environment'},
+      {f:'-u NAME',  d:'Remove a variable from the environment'},
+      {f:'NAME=VAL', d:'Set variable for the duration of command'},
+    ],
+    examples:[
+      {t:'View and set env vars',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">env</span>                        <span class="ex-out"># print all</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">env</span> | <span class="ex-cmd">grep</span> <span class="ex-arg">PATH</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">env</span> <span class="ex-arg">NODE_ENV=production node app.js</span>`},
+    ],
+    related:['export','printenv','set'] },
+
+  { name:'export', cat:'shell',
+    desc:'Mark shell variables for export to child processes (make them environment variables).',
+    syntax:'export [options] [NAME[=VALUE]…]',
+    flags:[
+      {f:'-p',    d:'Print all exported variables'},
+      {f:'-n',    d:'Remove export attribute (unexport)'},
+      {f:'-f',    d:'Export shell functions'},
+    ],
+    examples:[
+      {t:'Set environment variables',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">export</span> <span class="ex-arg">PATH="$HOME/.local/bin:$PATH"</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">export</span> <span class="ex-arg">EDITOR=vim</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">export</span> <span class="ex-arg">DATABASE_URL="postgres://localhost/mydb"</span>
+<span class="ex-out"># Add to ~/.bashrc to persist across sessions</span>`},
+    ],
+    related:['env','alias','source'] },
+
+  { name:'source', cat:'shell',
+    desc:'Execute commands from a file in the current shell context (not a subshell). Alias: . (dot).',
+    syntax:'source filename [arguments]\n. filename [arguments]',
+    flags:[],
+    examples:[
+      {t:'Reload shell config',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">source</span> <span class="ex-arg">~/.bashrc</span>          <span class="ex-out"># reload bash config</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">.</span> <span class="ex-arg">~/.bashrc</span>              <span class="ex-out"># same with dot alias</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">source</span> <span class="ex-arg">.env</span>               <span class="ex-out"># load .env file variables</span>`},
+    ],
+    related:['export','alias','bash'] },
+
+  { name:'tee', cat:'shell',
+    desc:'Read from stdin and write to both stdout and one or more files simultaneously.',
+    syntax:'tee [options] [file…]',
+    flags:[
+      {f:'-a', d:'Append to files rather than overwriting'},
+    ],
+    examples:[
+      {t:'Log and display output',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">make</span> <span class="ex-arg">build</span> 2>&1 | <span class="ex-cmd">tee</span> <span class="ex-arg">build.log</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">curl</span> <span class="ex-arg">https://api/data</span> | <span class="ex-cmd">tee</span> <span class="ex-arg">response.json</span> | <span class="ex-cmd">jq</span> <span class="ex-arg">.</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">echo</span> <span class="ex-arg">"new line"</span> | <span class="ex-cmd">sudo</span> <span class="ex-cmd">tee</span> <span class="ex-flag">-a</span> <span class="ex-arg">/etc/hosts</span>`},
+    ],
+    related:['pipe','redirect','cat'] },
+
+  { name:'xargs', cat:'shell',
+    desc:'Build and execute command lines from stdin — pass a list of items as arguments to another command.',
+    syntax:'xargs [options] [command]',
+    flags:[
+      {f:'-n N',      d:'Pass at most N arguments per command invocation'},
+      {f:'-P N',      d:'Run up to N processes in parallel'},
+      {f:'-I {}',     d:'Replace {} with each input item'},
+      {f:'-0',        d:'Input items are NUL-terminated (safe for filenames)'},
+      {f:'--no-run-if-empty', d:'Do not run command if input is empty'},
+    ],
+    examples:[
+      {t:'Common xargs patterns',c:`<span class="ex-prompt">$</span> <span class="ex-cmd">find</span> <span class="ex-arg">. -name "*.log" -print0</span> | <span class="ex-cmd">xargs</span> <span class="ex-flag">-0 rm</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">cat</span> <span class="ex-arg">urls.txt</span> | <span class="ex-cmd">xargs</span> <span class="ex-flag">-n1 -P4</span> <span class="ex-arg">curl -O</span>  <span class="ex-out"># parallel downloads</span>
+<span class="ex-prompt">$</span> <span class="ex-cmd">echo</span> <span class="ex-arg">"a b c"</span> | <span class="ex-cmd">xargs</span> <span class="ex-flag">-n1</span> <span class="ex-arg">echo "item:"</span>`},
+    ],
+    related:['find','parallel','pipe'] },
+
+];
+
+/* ── State ────────────────────────────────────────────────────── */
+let activeCat   = 'all';
+let activeCmd   = null;
+let searchQuery = '';
+
+/* ── Helpers ──────────────────────────────────────────────────── */
+function catColor(id) {
+  return (CATS.find(c => c.id === id) || {}).color || '#22d3ee';
+}
+
+function getFiltered() {
+  const q = searchQuery.toLowerCase();
+  return CMDS.filter(c => {
+    if (activeCat !== 'all' && c.cat !== activeCat) return false;
+    if (!q) return true;
+    return (
+      c.name.includes(q) ||
+      c.desc.toLowerCase().includes(q) ||
+      c.syntax.toLowerCase().includes(q) ||
+      c.flags.some(f => f.f.includes(q) || f.d.toLowerCase().includes(q)) ||
+      (c.related || []).some(r => r.includes(q))
+    );
+  });
+}
+
+function catCount(id) {
+  if (id === 'all') return CMDS.length;
+  return CMDS.filter(c => c.cat === id).length;
+}
+
+/* ── Render sidebar ───────────────────────────────────────────── */
+const NET_CATS = ['all','diag','config','monitor','transfer','security','dns','firewall','wireless'];
+const SYS_CATS = ['nav','files','proc','sysinfo','perms','text','pkg','services','disk','shell'];
+
+function renderCatGroup(ids, elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = CATS.filter(c => ids.includes(c.id)).map(c => `
+    <div class="cat-item ${activeCat === c.id ? 'active' : ''}"
+         style="--item-color:${c.color}"
+         onclick="selectCat('${c.id}')">
+      <span class="cat-dot"></span>
+      <span>${c.label}</span>
+      <span class="cat-count">${catCount(c.id)}</span>
+    </div>`).join('');
+}
+
+function renderSidebar() {
+  renderCatGroup(NET_CATS, 'cat-nav-net');
+  renderCatGroup(SYS_CATS, 'cat-nav-sys');
+}
+
+/* ── Render command list ──────────────────────────────────────── */
+function renderList() {
+  const filtered = getFiltered();
+  const listEl   = document.getElementById('cmdList');
+  const titleEl  = document.getElementById('listTitle');
+  const countEl  = document.getElementById('listCount');
+  const topCount = document.getElementById('count');
+
+  const catObj = CATS.find(c => c.id === activeCat) || CATS[0];
+  titleEl.textContent = searchQuery ? `Results` : catObj.label;
+  countEl.textContent = filtered.length + ' commands';
+  topCount.textContent = filtered.length + ' cmd' + (filtered.length !== 1 ? 's' : '');
+
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="no-results">
+      <span class="no-results-glyph">∅</span>
+      No results for "<strong>${searchQuery}</strong>"
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  if (activeCat === 'all' && !searchQuery) {
+    const groups = {};
+    filtered.forEach(c => { (groups[c.cat] = groups[c.cat] || []).push(c); });
+    Object.keys(groups).forEach(cat => {
+      const co = CATS.find(c => c.id === cat);
+      html += `<div class="group-header">${co ? co.label : cat}</div>`;
+      html += groups[cat].map((c, i) => renderItem(c, i)).join('');
+    });
+  } else {
+    html = filtered.map((c, i) => renderItem(c, i)).join('');
+  }
+  listEl.innerHTML = html;
+}
+
+function renderItem(cmd, idx) {
+  const color = catColor(cmd.cat);
+  const isActive = activeCmd === cmd.name;
+  const catLabel = (CATS.find(c => c.id === cmd.cat) || {}).label || cmd.cat;
+  const delay = Math.min(idx * 0.03, 0.3);
+  return `<div class="cmd-item ${isActive ? 'active' : ''}"
+              style="--item-accent:${color}; animation-delay:${delay}s"
+              onclick="selectCmd('${cmd.name}')">
+    <div class="cmd-item-name">
+      ${cmd.name}
+      <span class="cmd-item-badge">${catLabel}</span>
+    </div>
+    <div class="cmd-item-desc">${cmd.desc.split('—')[0].split('.')[0].trim()}</div>
+  </div>`;
+}
+
+/* ── Render detail ────────────────────────────────────────────── */
+function renderDetail(name) {
+  const cmd = CMDS.find(c => c.name === name);
+  if (!cmd) return;
+
+  const color   = catColor(cmd.cat);
+  const catObj  = CATS.find(c => c.id === cmd.cat) || {};
+  const iconBg  = color + '18';
+  const iconBd  = color + '40';
+
+  // Flags HTML
+  let flagsHtml = '';
+  if (cmd.flags && cmd.flags.length) {
+    flagsHtml = `
+    <div class="section">
+      <div class="section-title">Options &amp; flags</div>
+      <table class="flags-table">
+        ${cmd.flags.map(f => `
+        <tr>
+          <td class="flag-key">${f.f}</td>
+          <td class="flag-val">${f.d}</td>
+        </tr>`).join('')}
+      </table>
+    </div>`;
+  }
+
+  // Examples HTML
+  let exHtml = '';
+  if (cmd.examples && cmd.examples.length) {
+    exHtml = `
+    <div class="section">
+      <div class="section-title">Examples</div>
+      ${cmd.examples.map(ex => `
+      <div class="example">
+        <div class="example-bar">
+          <div class="example-dots">
+            <div class="example-dot" style="background:#f87171"></div>
+            <div class="example-dot" style="background:#f59e0b"></div>
+            <div class="example-dot" style="background:#00e88f"></div>
+          </div>
+          <span class="example-label">bash — ${ex.t}</span>
+        </div>
+        <div class="example-code">${ex.c}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Related HTML
+  let relHtml = '';
+  if (cmd.related && cmd.related.length) {
+    relHtml = `
+    <div class="section">
+      <div class="section-title">Related commands</div>
+      <div class="related-tags">
+        ${cmd.related.map(r => `
+        <a class="rel-tag" href="#" onclick="searchRelated(event,'${r}')">${r}</a>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-header-top">
+        <div class="detail-icon"
+             style="--icon-color:${color};--icon-bg:${iconBg};--icon-border:${iconBd}">
+          ${cmd.name.toUpperCase().slice(0,4)}
+        </div>
+        <div>
+          <div class="detail-cmd" style="--cmd-color:${color}">${cmd.name}</div>
+          <div class="detail-cat-badge"
+               style="--cat-color:${color};--cat-bg:${iconBg};--cat-border:${iconBd}">
+            ● ${(catObj.label || cmd.cat).toUpperCase()}
+          </div>
+        </div>
+      </div>
+      <div class="detail-desc-short">${cmd.desc}</div>
+    </div>
+    <div class="detail-body">
+      <div class="section">
+        <div class="section-title">Syntax</div>
+        <div class="syntax-block">
+          <span class="syntax-text">${cmd.syntax}</span>
+          <button class="copy-btn" onclick="copySyntax('${cmd.name}')">⎘ Copy syntax</button>
+        </div>
+      </div>
+      ${flagsHtml}${exHtml}${relHtml}
+    </div>`;
+
+  document.getElementById('placeholder').style.display = 'none';
+  const dc = document.getElementById('detailContent');
+  dc.style.display = 'block';
+  dc.style.animation = 'none';
+  void dc.offsetWidth;
+  dc.style.animation = '';
+  document.getElementById('detailPanel').scrollTop = 0;
+}
+
+/* ── Interactions ─────────────────────────────────────────────── */
+function selectCat(id) {
+  activeCat = id;
+  searchQuery = '';
+  document.getElementById('search').value = '';
+  renderSidebar();
+  renderList();
+}
+
+function selectCmd(name) {
+  activeCmd = name;
+  renderList();
+  renderDetail(name);
+}
+
+function searchRelated(e, name) {
+  e.preventDefault();
+  const found = CMDS.find(c => c.name === name);
+  if (found) {
+    selectCmd(name);
+  } else {
+    document.getElementById('search').value = name;
+    searchQuery = name;
+    activeCat = 'all';
+    renderSidebar();
+    renderList();
+  }
+}
+
+function copySyntax(name) {
+  const cmd = CMDS.find(c => c.name === name);
+  if (!cmd) return;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(cmd.syntax).catch(() => {});
+  }
+  const btn = document.querySelector('.copy-btn');
+  if (btn) {
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '⎘ Copy syntax', 2000);
+  }
+}
+
+/* ── Search ───────────────────────────────────────────────────── */
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  if (searchQuery) activeCat = 'all';
+  renderSidebar();
+  renderList();
+});
+
+/* ── Sidebar toggle ───────────────────────────────────────────── */
+let sidebarVisible = true;
+
+function toggleSidebar() {
+  sidebarVisible = !sidebarVisible;
+  const sb  = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebarToggle');
+  if (sidebarVisible) {
+    sb.classList.remove('collapsed');
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    btn.title = 'Hide categories (Ctrl+B)';
+  } else {
+    sb.classList.add('collapsed');
+    btn.style.borderColor = 'rgba(34,211,238,0.4)';
+    btn.style.color = 'var(--cyan)';
+    btn.title = 'Show categories (Ctrl+B)';
+  }
+}
+
+/* ── Keyboard shortcuts ───────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  // Ctrl+B to toggle sidebar
+  if (e.ctrlKey && e.key === 'b') {
+    e.preventDefault();
+    toggleSidebar();
+    return;
+  }
+
+  // Ctrl+K or / to focus search
+  if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT')) {
+    e.preventDefault();
+    document.getElementById('search').focus();
+    document.getElementById('search').select();
+    return;
+  }
+
+  // Escape to clear search
+  if (e.key === 'Escape') {
+    const s = document.getElementById('search');
+    if (document.activeElement === s) {
+      s.value = '';
+      searchQuery = '';
+      renderSidebar();
+      renderList();
+      s.blur();
+    }
+    return;
+  }
+
+  // Arrow key navigation through list
+  if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    const filtered = getFiltered();
+    if (!filtered.length) return;
+    const idx = filtered.findIndex(c => c.name === activeCmd);
+    let next;
+    if (e.key === 'ArrowDown') next = idx < filtered.length - 1 ? idx + 1 : 0;
+    else next = idx > 0 ? idx - 1 : filtered.length - 1;
+    selectCmd(filtered[next].name);
+    // scroll into view
+    const items = document.querySelectorAll('.cmd-item');
+    if (items[next]) items[next].scrollIntoView({ block: 'nearest' });
+    return;
+  }
+});
+
+/* ── Init ─────────────────────────────────────────────────────── */
+renderSidebar();
+renderList();
+// Select first command on load
+if (CMDS.length) {
+  setTimeout(() => selectCmd(CMDS[0].name), 80);
+}
+</script>
+</body>
+</html>
